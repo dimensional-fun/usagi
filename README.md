@@ -6,6 +6,9 @@
 - 🚀 uses [ktor](https://ktor.io)
 - 😎 modern api
 
+> **Warning**
+> Usagi is in Alpha, bugs may be ahead!
+
 ## installation
 
 current version: *coming soon*
@@ -14,25 +17,64 @@ current version: *coming soon*
 
 ```kotlin
 repositories {
-    maven("https://maven.dimensional.fun/public")
+    maven("https://maven.dimensional.fun/releases")
 }
 
 dependencies {
-    implementation("mixtape.oss.usagi:amqp-client:{VERSION}")
+    // common:
+    implementation("mixtape.oss.usagi:usagi:{VERSION}")
 }
 ```
 
 ## usage
 
-```kt
-suspend fun main() {
-    /* connect to an amqp server */
-    val client = Usagi.connect("amqp://guest:guest@localhost:5672")
+**create a channel:**
 
-    /* allocate a new channel to this connection. */
-    val channel = client.channel() // or client.channel(id = _)
+```kotlin
+val connection = Usagi.connect("amqp://guest:guest@localhost:5672")
+val channel = connection.channels.create() ?: error("Unable to create channel")
+```
+
+**using exchanges & queues**
+```kotlin
+channel.exchange.declare { 
+    exchange = "my-exchange" 
+}
+
+val queueName = channel.queue.declare().queue
+channel.queue.bind {
+    exchange = "my-exchange"
+    queue = queueName
+    routingKey = "my-routing-key"
+}
+```
+
+**publishing messages:**
+```kotlin
+channel.basic.publish {
+    data = "Hello, World!".decodeToString()
     
-    // more coming soon!
+    properties {
+        contentType = "text/plain"
+    }
+    
+    options {
+        exchangeName = "my-exchange"
+        routingKey = "my-routing-key"
+    }
+}
+```
+
+**consuming messages:**
+```kotlin
+val consumer = channel.basic.consume {
+    exchangeName = "my-exchange"
+    routingKey = "my-routingKey"
+}
+
+consumer.on<MessagePublishedEvent> {
+    println(delivery.data.encodeToString()) // >> 'Hello, World'
+    delivery.ack(multiple = false)
 }
 ```
 
