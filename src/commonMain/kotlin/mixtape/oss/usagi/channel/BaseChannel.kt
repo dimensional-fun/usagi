@@ -3,15 +3,17 @@ package mixtape.oss.usagi.channel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import mixtape.oss.usagi.channel.command.Command
 import mixtape.oss.usagi.channel.command.CommandAssembler
 import mixtape.oss.usagi.connection.Connection
 import mixtape.oss.usagi.connection.frame.Frame
 import mixtape.oss.usagi.protocol.AMQP
 import mixtape.oss.usagi.protocol.Method
+import mixtape.oss.usagi.tools.measure
 import mu.KotlinLogging
 import kotlin.time.Duration
-import kotlin.time.measureTimedValue
 
 public abstract class BaseChannel(
     /**
@@ -27,14 +29,21 @@ public abstract class BaseChannel(
         private val log = KotlinLogging.logger { }
     }
 
-    public val scope: CoroutineScope = CoroutineScope(
-        connection.resources.scope.coroutineContext + SupervisorJob() + CoroutineName("Channel $id")
-    )
+    public val scope: CoroutineScope = connection.resources.scope + SupervisorJob() + CoroutineName("Channel $id")
 
     /** Used for constructing */
     private val assembler = CommandAssembler()
     /** Shared flow of incoming [Command]s */
     private val commandFlow = MutableSharedFlow<Command>()
+    /** The current RPC being performed */
+    private var rpc: Deferred<Command>? = null
+    /** Whether sending of content-frames is being done, see [AMQP.Channel.Flow] */
+    private var active: Boolean = true
+    /** Mutex used for sending commands */
+    private val mutex = Mutex()
+
+    /** Whether this channel is performing an RPC call */
+    internal val inRPC: Boolean get() = rpc != null
 
     /**
      * Opens this channel.
@@ -89,50 +98,58 @@ public abstract class BaseChannel(
         commandFlow.emit(command)
     }
 
-    /**
-     *
-     */
     public suspend fun send(method: Method) {
-        val command = Command(method)
-        return send(command)
+        return quiescingSend(method)
     }
 
-    /**
-     *
-     */
-    public suspend fun send(command: Command): Unit {
-        log.debug { "[Channel $id] SEND command ${command.method}" }
-        command.transmit(this)
+    public suspend fun send(command: Command) {
+        return quiescingSend(command)
     }
 
-    /**
-     *
-     */
-    public suspend fun rpc(method: Method): Command = rpc(Command(method))
+    public suspend fun rpc(method: Method): Command {
+        return rpc(Command(method))
+    }
 
     /**
      *
      */
     public suspend fun rpc(command: Command): Command {
         send(command)
-        val (resp, took) = measureTimedValue {
-            receiveCommand()
-        }
 
-        log.trace { "[Channel $id] RPC took $took" }
-        return resp
+        rpc = scope.async { receiveCommand() }
+
+        return log.measure("[Channel $id] RPC took", log::debug) { rpc!!.await() }
+    }
+
+    public fun shutdown() {
+
+    }
+
+    public suspend fun receiveCommand(): Command {
+        return commandFlow.first()
+    }
+
+    public suspend fun receiveCommand(timeout: Duration): Command {
+        return withTimeout(timeout) { receiveCommand() }
     }
 
     /**
      *
      */
-    public fun shutdown() {
-
+    private suspend fun quiescingSend(method: Method) {
+        return quiescingSend(Command(method))
     }
 
-    public suspend fun receiveCommand(): Command = commandFlow.first()
+    private suspend fun quiescingSend(command: Command) {
+        mutex.withLock {
+            if (command.method.hasContent()) {
+                while (!active) {
+                    // todo: ensure that the channel is open
+                }
+            }
 
-    public suspend fun receiveCommand(timeout: Duration): Command {
-        return withTimeout(timeout) { receiveCommand() }
+            log.debug { "[Channel $id] SEND command ${command.method}" }
+            command.transmit(this)
+        }
     }
 }

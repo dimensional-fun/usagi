@@ -3,35 +3,29 @@ package mixtape.oss.usagi.connection
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.CancellationException
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.isActive
 import mixtape.oss.kyuso.Kyuso
 import mixtape.oss.kyuso.task.Task
-import mixtape.oss.usagi.channel.BaseChannel
 import mixtape.oss.usagi.channel.ChannelManager
-import mixtape.oss.usagi.channel.command.Command
-import mixtape.oss.usagi.connection.event.ConnectionBlockedEvent
 import mixtape.oss.usagi.connection.event.ConnectionEvent
-import mixtape.oss.usagi.connection.event.ConnectionUnblockedEvent
 import mixtape.oss.usagi.connection.frame.Frame
 import mixtape.oss.usagi.connection.frame.FrameTooLargeException
 import mixtape.oss.usagi.connection.frame.FrameType
 import mixtape.oss.usagi.protocol.AMQP
+import mixtape.oss.usagi.protocol.Method
 import mixtape.oss.usagi.protocol.ProtocolVersion
 import mixtape.oss.usagi.protocol.reader.amqp
 import mixtape.oss.usagi.protocol.type.LongString
 import mixtape.oss.usagi.protocol.writer.amqp
 import mu.KotlinLogging
-import kotlin.coroutines.coroutineContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.measureTimedValue
 
-public data class Connection(
-    private val socket: Socket,
-    internal val resources: ConnectionResources,
-) {
+public class Connection(private val socket: Socket, internal val resources: ConnectionResources) {
     public companion object {
         private val log = KotlinLogging.logger { }
 
@@ -39,16 +33,16 @@ public data class Connection(
          *
          */
         public suspend fun connect(
-            remote: SocketAddress,
+            brokerAddress: SocketAddress,
             resources: ConnectionResources,
         ): Connection {
-            /* create a new TCP socket connection to the specified remote address */
+            /* create a new TCP socket connection to the specified broker address */
             val (connection, took) = measureTimedValue {
                 val socket = aSocket(SelectorManager(resources.scope.coroutineContext))
                     .tcp()
-                    .connect(remote)
+                    .connect(brokerAddress)
 
-                /* create a new AMQP connection instance and negotiate with remote. */
+                /* create a new AMQP connection instance and negotiate with the broker. */
                 val connection = Connection(socket, resources)
                 connection.initialize()
             }
@@ -58,6 +52,8 @@ public data class Connection(
         }
     }
 
+    /** The cancellation exception */
+    private var cancelCause: ConnectionCancelledException? = null
     /** The task used to read incoming frames from [input], see [startFrameTask] */
     private var frameTask: Task? = null
     /** Read channel for incoming frames */
@@ -66,35 +62,18 @@ public data class Connection(
     private val output = socket.openWriteChannel()
     /** Used to schedule and dispatch asynchronous tasks. */
     private val kyuso = Kyuso(resources.scope)
-    /** Sends heart-beat frames to the remote. */
+    /** Sends heart-beat frames to the broker. */
     private val heartbeatDispatcher = HeartbeatDispatcher(this, kyuso)
+
+    /** Whether this connection is currently running */
+    internal var running: Boolean = false
     /** Special channel just for this connection used for housekeeping. */
-    private val channel0 = object : BaseChannel(this@Connection, 0) {
-        override suspend fun processIncomingCommand(command: Command): Boolean = when (command.method) {
-            is AMQP.Connection.Close -> {
-                log.debug { "Server requested close: ${command.method}" }
-                send(AMQP.Connection.CloseOk())
-                frameTask?.cancel()
-                heartbeatDispatcher.stop()
-                socket.close()
-                true
-            }
+    internal val channel0 = Channel0(this)
 
-            is AMQP.Connection.Blocked -> {
-                val event = ConnectionBlockedEvent(connection, command.method.reason)
-                resources.eventFlow.emit(event)
-                true
-            }
-
-            is AMQP.Connection.Unblocked -> {
-                val event = ConnectionUnblockedEvent(connection)
-                resources.eventFlow.emit(event)
-                true
-            }
-
-            else -> false
-        }
-    }
+    /**
+     * Whether this connection is open.
+     */
+    public val isOpen: Boolean get() = running
 
     /**
      * The current latency of this connection.
@@ -121,10 +100,36 @@ public data class Connection(
      */
     public val channels: ChannelManager = ChannelManager(this)
 
+    public fun ensureOpen() {
+        if (cancelCause != null) throw cancelCause as Throwable
+    }
+
+    public suspend fun shutdown(reason: Method) {
+        heartbeatDispatcher.stop()
+    }
+
+    /**
+     *
+     */
+    public suspend fun close(replyCode: Short = 200, replyText: String = "OK") {
+        ensureOpen()
+        val method = AMQP.Connection.Close {
+            classId = 0
+            methodId = 0
+            replyCode(replyCode)
+            replyText(replyText)
+        }
+
+        cancelCause = ConnectionCancelledException(method, null, true)
+        channel0.send(method)
+        // connection gets disposed by channel 0
+    }
+
     /**
      * Flushes the byte write stream for this connection.
      */
     public fun flush() {
+        ensureOpen()
         output.flush()
     }
 
@@ -135,6 +140,7 @@ public data class Connection(
      * @throws FrameTooLargeException If [frame] exceeds the max frame size.
      */
     public suspend fun writeFrame(frame: Frame) {
+        ensureOpen()
         if (preferences.exceedsFrameMax(frame.size)) {
             throw FrameTooLargeException(frame, preferences.maxFrameSize)
         }
@@ -150,6 +156,8 @@ public data class Connection(
      * @throws FrameTooLargeException If it exceeds the max frame size.
      */
     public suspend fun readFrame(): Frame {
+        ensureOpen()
+
         // todo: is this fine?
         if (input.availableForRead < 1) {
             input.awaitContent()
@@ -169,6 +177,8 @@ public data class Connection(
      * Initializes this AMQP connection.
      */
     public suspend fun initialize(): Connection {
+        running = true
+
         /* write the protocol frame header. */
         output.writeFully(resources.protocol.header)
         flush()
@@ -220,7 +230,7 @@ public data class Connection(
                     }
 
                     is AMQP.Connection.Secure -> {
-                        log.trace { "Remote is requesting secure..." }
+                        log.trace { "Broker is requesting secure..." }
                         challenge = response.method.challenge
                     }
 
@@ -248,9 +258,32 @@ public data class Connection(
         return this
     }
 
+    /** Handle a close method */
+    internal suspend fun handleConnectionClose(method: AMQP.Connection.Close) {
+        channel0.send(AMQP.Connection.CloseOk())
+        cancelCause = ConnectionCancelledException(method, null, false)
+        dispose()
+    }
+
+    private suspend fun dispose() {
+        println("lmfao disposing")
+        try {
+            channels.shutdown()
+            heartbeatDispatcher.stop()
+            frameTask?.cancel()
+            socket.close()
+        } finally {
+            resources.scope.cancel(cancelCause)
+            resources.scope.coroutineContext[Job]!!.join()
+        }
+    }
+
+    private suspend fun handleException(ex: Throwable) {
+    }
+
     private suspend fun startFrameTask() {
         frameTask = kyuso.dispatch {
-            while (coroutineContext.isActive) {
+            while (running) {
                 try {
                     val frame = readFrame()
                     if (frame.header.type is FrameType.Heartbeat) {
@@ -272,8 +305,11 @@ public data class Connection(
 
                         channel.handleFrame(frame)
                     }
+                } catch (ex: CancellationException) {
+
                 } catch (ex: Throwable) {
                     log.error(ex) { "Encountered exception while in frame loop." }
+                    handleException(ex)
                     break
                 }
             }

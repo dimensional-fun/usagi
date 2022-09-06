@@ -2,6 +2,7 @@ package mixtape.oss.usagi.connection
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import mixtape.oss.usagi.connection.auth.AuthMechanism
@@ -14,7 +15,7 @@ import kotlin.time.Duration.Companion.seconds
 public data class ConnectionResources(
     val credentials: Pair<String, String>,
     val virtualHost: String = "/",
-    val scope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob()),
+    val scope: CoroutineScope = CoroutineScope(Dispatchers.Default + Job()),
     val protocol: Protocol = Protocol.DEFAULT,
     val handshakeTimeout: Duration = 10.seconds,
     val authMechanisms: List<AuthMechanism> = listOf(AuthMechanisms.Plain),
