@@ -1,9 +1,16 @@
 package mixtape.oss.usagi.channel
 
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.sync.withLock
 import mixtape.oss.usagi.channel.command.Command
 import mixtape.oss.usagi.channel.consumer.Consumer
+import mixtape.oss.usagi.channel.consumer.Delivery
+import mixtape.oss.usagi.channel.event.MessagePublishedEvent
+import mixtape.oss.usagi.channel.event.ChannelEvent
 import mixtape.oss.usagi.connection.Connection
 import mixtape.oss.usagi.protocol.AMQP
+import mixtape.oss.usagi.tools.into
 import mu.KotlinLogging
 
 public class Channel(
@@ -15,8 +22,12 @@ public class Channel(
     }
 
     private val consumerMap = hashMapOf<String, Consumer>()
+    private val eventFlow = MutableSharedFlow<ChannelEvent>(extraBufferCapacity = Int.MAX_VALUE)
 
+    /**  */
     public val consumers: Map<String, Consumer> get() = object : Map<String, Consumer> by consumerMap {}
+    /**  */
+    public val events: SharedFlow<ChannelEvent> get() = eventFlow
 
     override suspend fun processIncomingCommand(command: Command): Boolean = when (command.method) {
         // TODO: handle channel related shit here.
@@ -28,23 +39,35 @@ public class Channel(
 
         /* consumer-specific commands */
         is AMQP.Basic.Deliver -> {
-            consumerMap[command.method.consumerTag]?.handle(command.method, command)
+            val consumer = consumerMap[command.method.consumerTag]
+            if (consumer != null) {
+                val delivery = Delivery(
+                    consumer,
+                    Delivery.Envelope(
+                        command.method.deliveryTag,
+                        command.method.redelivered,
+                        command.method.exchange,
+                        command.method.routingKey,
+                    ),
+                    command.header?.properties.into(),
+                    command.body!!.asBytes()
+                )
+
+                eventFlow.emit(MessagePublishedEvent(consumer, delivery))
+            }
+
             true
         }
 
         is AMQP.Basic.Cancel -> {
-            consumerMap[command.method.consumerTag]?.handle(command.method, command)
             true
         }
 
         is AMQP.Basic.CancelOk -> {
-            consumerMap[command.method.consumerTag]?.handle(command.method, command)
             false // forward this to RPC
         }
 
         is AMQP.Basic.RecoverOk -> {
-            for (consumer in consumerMap.values) consumer.handle(command.method, command)
-
             false // forward this to RPC
         }
 
@@ -58,7 +81,6 @@ public class Channel(
 
         val consumer = Consumer(this, ok.method.consumerTag)
         consumerMap[consumer.tag] = consumer
-        consumer.handle(ok.method, ok)
 
         return consumer
     }

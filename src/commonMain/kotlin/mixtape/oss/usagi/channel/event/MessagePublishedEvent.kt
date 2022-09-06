@@ -1,4 +1,4 @@
-package mixtape.oss.usagi.channel.consumer.event
+package mixtape.oss.usagi.channel.event
 
 import mixtape.oss.usagi.channel.consumer.Consumer
 import mixtape.oss.usagi.channel.consumer.Delivery
