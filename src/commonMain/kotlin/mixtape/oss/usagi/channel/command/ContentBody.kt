@@ -12,9 +12,7 @@ public sealed class ContentBody {
 
     /**
      */
-    public class Whole(value: ByteArray) : ContentBody() {
-        private val bytes = value.copyOf()
-
+    public class Whole(private val bytes: ByteArray) : ContentBody() {
         override fun asBytes(): ByteArray = bytes
     }
 
