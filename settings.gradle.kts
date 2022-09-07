@@ -1,4 +1,4 @@
-rootProject.name = "usagi-root"
+rootProject.name = "usagi"
 
 enableFeaturePreview("VERSION_CATALOGS")
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
@@ -38,5 +38,5 @@ fun VersionCatalogBuilder.common() {
 
 /* networking */
 fun VersionCatalogBuilder.net() {
-    library("ktor-network", "io.ktor", "ktor-network").version("2.1.0")
+    library("ktor-network", "io.ktor", "ktor-network").version("2.1.1")
 }

@@ -18,7 +18,7 @@ dependencies {
 
     /* misc */
 //    implementation("org.jetbrains.kotlinx:atomicfu-gradle-plugin:0.17.3")
-    implementation("fun.dimensional.gradle:gradle-tools:1.0.3")
+    implementation("fun.dimensional.gradle:gradle-tools:1.1.2")
 
     /* used for code-generation */
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0")
