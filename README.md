@@ -30,6 +30,9 @@ dependencies {
 
 ## Usage
 
+> **Note**  
+> This API is not final, it may change in the future.
+
 **Create a Channel:**
 
 ```kotlin
