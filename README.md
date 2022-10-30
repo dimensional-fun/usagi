@@ -1,19 +1,21 @@
 # Usagi
 
-> a kotlin multi-platform [rabbitmq](https://rabbitmq.org) client
+A kotlin multi-platform AMQP 0.9.1 client.
 
-- ⚡ powered by [kotlin coroutines](https://github.com/kotlin/kotlinx.coroutines)
-- 🚀 uses [ktor](https://ktor.io)
-- 😎 modern api
+- ⚡ Powered by [kotlin coroutines](https://github.com/kotlin/kotlinx.coroutines)
+- 🚀 Uses [ktor](https://ktor.io)
+- 😎 Idiomatic Kotlin API
 
 > **Warning**
 > Usagi is in Alpha, bugs may be ahead!
 
-## installation
+**We are looking for contributors! If you are looking for a kotlin multiplatform AMQP client please consider opening PRs and Issues, it is very appreciated.**
+
+## Installation
 
 current version: *coming soon*
 
-#### 🐘 docker
+#### 🐘 Gradle
 
 ```kotlin
 repositories {
@@ -26,16 +28,16 @@ dependencies {
 }
 ```
 
-## usage
+## Usage
 
-**create a channel:**
+**Create a Channel:**
 
 ```kotlin
 val connection = Usagi.connect("amqp://guest:guest@localhost:5672")
 val channel = connection.channels.create() ?: error("Unable to create channel")
 ```
 
-**using exchanges & queues**
+**Using Exchanges & Queues**
 ```kotlin
 channel.exchange.declare { 
     exchange = "my-exchange" 
@@ -49,7 +51,7 @@ channel.queue.bind {
 }
 ```
 
-**publishing messages:**
+**Publishing Messages:**
 ```kotlin
 channel.basic.publish {
     data = "Hello, World!".decodeToString()
@@ -65,7 +67,7 @@ channel.basic.publish {
 }
 ```
 
-**consuming messages:**
+**Consuming Messages:**
 ```kotlin
 val consumer = channel.basic.consume {
     exchangeName = "my-exchange"
@@ -78,7 +80,7 @@ consumer.on<MessagePublishedEvent> {
 }
 ```
 
-## acknowledgements
+## Acknowledgements
 
 - a bit of the internal connection/channel code was adapted from the [official rabbitmq java client](https://github.com/rabbitmq/rabbitmq-java-client)
 - [amqp 0.9.1 spec](https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf)
