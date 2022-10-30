@@ -1,4 +1,4 @@
-# mixtape &bull; usagi
+# Usagi
 
 > a kotlin multi-platform [rabbitmq](https://rabbitmq.org) client
 
@@ -83,3 +83,7 @@ consumer.on<MessagePublishedEvent> {
 - a bit of the internal connection/channel code was adapted from the [official rabbitmq java client](https://github.com/rabbitmq/rabbitmq-java-client)
 - [amqp 0.9.1 spec](https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf)
 - [amqp 0.9.1 doc](https://www.rabbitmq.com/resources/specs/amqp-xml-doc0-9-1.pdf)
+
+---
+
+[Dimensional Fun](https://dimensional.fun)
