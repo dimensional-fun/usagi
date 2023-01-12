@@ -1,5 +1,6 @@
 package mixtape.oss.usagi.channel.method
 
+import kotlinx.coroutines.sync.withLock
 import mixtape.oss.usagi.channel.Channel
 import mixtape.oss.usagi.protocol.AMQP
 import kotlin.jvm.JvmInline
@@ -11,7 +12,7 @@ public value class QueueMethods(public val channel: Channel) {
     /**
      * @param method
      */
-    public suspend fun declare(method: AMQP.Queue.Declare): AMQP.Queue.DeclareOk {
+    public suspend fun declare(method: AMQP.Queue.Declare): AMQP.Queue.DeclareOk /*= channel.mutex.withLock */{
         val ok = channel.rpc(method)
         require(ok.method is AMQP.Queue.DeclareOk) { "Expected `queue.declare-ok`, not ${ok.method.methodName()}" }
         return ok.method
@@ -24,7 +25,7 @@ public value class QueueMethods(public val channel: Channel) {
     /**
      * @param method
      */
-    public suspend fun bind(method: AMQP.Queue.Bind): AMQP.Queue.BindOk {
+    public suspend fun bind(method: AMQP.Queue.Bind): AMQP.Queue.BindOk /*= channel.mutex.withLock */{
         val ok = channel.rpc(method)
         require(ok.method is AMQP.Queue.BindOk) { "Expected `queue.bind-ok`, not ${ok.method.methodName()}" }
         return ok.method
@@ -37,7 +38,7 @@ public value class QueueMethods(public val channel: Channel) {
     /**
      * @param method
      */
-    public suspend fun purge(method: AMQP.Queue.Purge): AMQP.Queue.PurgeOk {
+    public suspend fun purge(method: AMQP.Queue.Purge): AMQP.Queue.PurgeOk /*= channel.mutex.withLock */{
         val ok = channel.rpc(method)
         require(ok.method is AMQP.Queue.PurgeOk) { "Expected `queue.purge-ok`, not ${ok.method.methodName()}" }
         return ok.method
@@ -50,7 +51,7 @@ public value class QueueMethods(public val channel: Channel) {
     /**
      * @param method
      */
-    public suspend fun delete(method: AMQP.Queue.Delete): AMQP.Queue.DeleteOk {
+    public suspend fun delete(method: AMQP.Queue.Delete): AMQP.Queue.DeleteOk /*= channel.mutex.withLock */{
         val ok = channel.rpc(method)
         require(ok.method is AMQP.Queue.DeleteOk) { "Expected `queue.delete-ok`, not ${ok.method.methodName()}" }
         return ok.method
@@ -63,7 +64,7 @@ public value class QueueMethods(public val channel: Channel) {
     /**
      * @param method
      */
-    public suspend fun unbind(method: AMQP.Queue.Unbind): AMQP.Queue.UnbindOk {
+    public suspend fun unbind(method: AMQP.Queue.Unbind): AMQP.Queue.UnbindOk /*= channel.mutex.withLock */{
         val ok = channel.rpc(method)
         require(ok.method is AMQP.Queue.UnbindOk) { "Expected `queue.unbind-ok`, not ${ok.method.methodName()}" }
         return ok.method

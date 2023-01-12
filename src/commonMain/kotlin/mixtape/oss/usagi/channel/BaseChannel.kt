@@ -35,13 +35,13 @@ public abstract class BaseChannel(
     private val assembler = CommandAssembler()
     /** Shared flow of incoming [Command]s */
     private val commandFlow = MutableSharedFlow<Command>()
-    /** The current RPC being performed */
-    private var rpc: Deferred<Command>? = null
     /** Whether sending of content-frames is being done, see [AMQP.Channel.Flow] */
     private var active: Boolean = true
     /** Mutex used for sending commands */
     private val mutex = Mutex()
 
+    /** The current RPC being performed */
+    internal var rpc: Deferred<Command>? = null
     /** Whether this channel is performing an RPC call */
     internal val inRPC: Boolean get() = rpc != null
 
@@ -114,9 +114,8 @@ public abstract class BaseChannel(
      *
      */
     public suspend fun rpc(command: Command): Command {
-        send(command)
-
         rpc = scope.async { receiveCommand() }
+        send(command)
 
         return log.measure("[Channel $id] RPC took", log::debug) { rpc!!.await() }
     }

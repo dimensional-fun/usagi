@@ -99,11 +99,9 @@ fun TypeSpec.Builder.amqpClassPropertiesWriter(amqpClass: AMQP.Class): TypeSpec.
         }
     )
     writeTo.addCode(
-        """
-    |
-    |writer.finishPresence()
-    |
-    """.trimMargin()
+        """|
+           |writer.finishPresence()
+           |""".trimMargin()
     )
 
     writeTo.addCode(
@@ -116,15 +114,19 @@ fun TypeSpec.Builder.amqpClassPropertiesWriter(amqpClass: AMQP.Class): TypeSpec.
     return addFunction(writeTo.build())
 }
 
+/* Simplified version of the builder for methods */
 fun TypeSpec.Builder.amqpClassPropertiesBuilder(amqpClass: AMQP.Class): TypeSpec.Builder {
     val spec = TypeSpec.classBuilder("Builder")
         .addModifiers(KModifier.PUBLIC)
 
-    val builder = FunSpec.builder("build")
+    val buildMethod = FunSpec.builder("build")
         .returns(ClassName("", "Properties"))
         .addCode("return Properties(")
 
-    // Simplified version of the builder for methods
+    val copyFromMethod = FunSpec.builder("copyFrom")
+        .addParameter("other", ClassName("", "Builder"))
+        .returns(ClassName("", "Builder"))
+
     for (prop in amqpClass.properties) {
         spec.addProperty(
             PropertySpec
@@ -153,17 +155,24 @@ fun TypeSpec.Builder.amqpClassPropertiesBuilder(amqpClass: AMQP.Class): TypeSpec
                 .build()
         )
 
-        /* add parameter to constructor call in builder. */
-        builder.addCode("%L", prop.normalizedName)
+        /* add parameter to constructor call in `build` method. */
+        buildMethod.addCode("%L", prop.normalizedName)
         prop.type.convert
             ?.takeIf { prop.type.internalType != prop.type.exposedType }
-            ?.let { builder.addCode("?.let { %L }", CodeBlock.of(it, "it")) }
+            ?.let { buildMethod.addCode("?.let { %L }", CodeBlock.of(it, "it")) }
 
-        builder.addCode(", ")
+        buildMethod.addCode(", ")
+
+        /* add copy instruction to `copyFrom` method. */
+        copyFromMethod.addCode("%L = other.%L\n", prop.normalizedName, prop.normalizedName)
     }
 
+    spec.addFunction(copyFromMethod
+        .addCode("return this")
+        .build())
+
     spec.addFunction(
-        builder
+        buildMethod
             .addCode(")")
             .build()
     )

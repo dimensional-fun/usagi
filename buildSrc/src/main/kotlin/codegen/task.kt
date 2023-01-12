@@ -54,8 +54,6 @@ abstract class GenerateAMQPClasses : DefaultTask() {
         } catch (e: IOException) {
             project.logger.error("Unable to request to $CODE_GEN_DATA")
         }
-
-
     }
 
     private fun generate(fileSpec: FileSpec) {

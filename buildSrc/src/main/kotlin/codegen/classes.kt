@@ -17,7 +17,7 @@ fun generateAMQP(name: String, classes: List<AMQP.Class>): FileSpec {
 fun generateAMQPObject(name: String, amqpClasses: List<AMQP.Class>): TypeSpec {
     val classHolder = TypeSpec.objectBuilder(name)
         .addModifiers(KModifier.PUBLIC)
-        //.addKdoc("Container class for auto-generated AMQP classes & their methods.")
+//        .addKdoc("Container class for auto-generated AMQP classes & their methods.")
 
     for (amqpClass in amqpClasses) {
         val spec = generateAMQPClass(amqpClass)
@@ -37,11 +37,10 @@ fun TypeSpec.Builder.amqpReadMethodFromFunction(amqpClasses: List<AMQP.Class>): 
         .returns(METHOD)
 
     spec.addCode(
-        """
-        |val classId  = reader.readShortUnsigned().toInt()
-        |val methodId = reader.readShortUnsigned().toInt()
-        |return when (classId) {
-        |""".trimMargin()
+        """|val classId = reader.readShortUnsigned().toInt()
+           |val methodId = reader.readShortUnsigned().toInt()
+           |return when (classId) {
+           |""".trimMargin()
     )
 
     for (amqpClass in amqpClasses) {
@@ -56,7 +55,10 @@ fun TypeSpec.Builder.amqpReadMethodFromFunction(amqpClasses: List<AMQP.Class>): 
 
 fun AMQP.Class.createWhenMethodId(): String =
     """when (methodId) {
-    ${methods.joinToString("\n") { "|$INDENT${it.id} -> ${normalizedName}.${it.normalizedName}(reader)" }}
+    ${methods.joinToString("\n") {
+        val expression =  "${normalizedName}.${it.normalizedName}" 
+        "|$INDENT${it.id} -> $expression${if (it.arguments.isNotEmpty()) "(reader)" else ""}" 
+    }}
     |${INDENT}else -> error("Invalid method id ${"$"}methodId for class ${"$"}classId") 
     |}
     """.replaceIndentByMargin(INDENT)

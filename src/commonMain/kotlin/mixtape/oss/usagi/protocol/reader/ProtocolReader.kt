@@ -29,7 +29,7 @@ public interface ProtocolReader {
     public suspend fun readArray(): List<Any?> {
         val packet = readPacket(n = readLongSigned())
 
-        /* read array values from packet */
+        /* read array values from the packet */
         val array = mutableListOf<Any?>()
         while (packet.isNotEmpty) {
             array += packet.amqp.readFieldValue()

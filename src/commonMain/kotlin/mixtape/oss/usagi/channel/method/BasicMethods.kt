@@ -15,7 +15,7 @@ public value class BasicMethods(private val channel: Channel) {
     /**
      * @param method
      */
-    public suspend fun qos(method: AMQP.Basic.Qos): AMQP.Basic.QosOk {
+    public suspend fun qos(method: AMQP.Basic.Qos): AMQP.Basic.QosOk /*= channel.mutex.withLock */{
         val ok = channel.rpc(method)
         require(ok.method is AMQP.Basic.QosOk) { "Expected `basic.qos-ok`, not ${ok.method.methodName()}" }
         return ok.method
@@ -41,7 +41,7 @@ public value class BasicMethods(private val channel: Channel) {
     /**
      * @param method
      */
-    public suspend fun cancel(method: AMQP.Basic.Cancel): AMQP.Basic.CancelOk {
+    public suspend fun cancel(method: AMQP.Basic.Cancel): AMQP.Basic.CancelOk /*= channel.mutex.withLock */{
         val ok = channel.rpc(method)
         require(ok.method is AMQP.Basic.CancelOk) { "Expected `basic.cancel-ok`, not ${ok.method.methodName()}" }
         return ok.method
@@ -52,7 +52,9 @@ public value class BasicMethods(private val channel: Channel) {
     }
 
     /**
-     * @param method
+     * Publish a message
+     *
+     * @param block Function used for building the message to publish.
      */
     public suspend fun publish(
         block: Publish.() -> Unit,
@@ -61,13 +63,13 @@ public value class BasicMethods(private val channel: Channel) {
             .apply(block)
             .build()
 
-        channel.send(command)
+        /*channel.mutex.withLock { */channel.send(command)/* }*/
     }
 
     /**
      * @param method
      */
-    public suspend fun get(method: AMQP.Basic.Get): AMQP.Basic.GetOk {
+    public suspend fun get(method: AMQP.Basic.Get): AMQP.Basic.GetOk /*= channel.mutex.withLock */{
         val ok = channel.rpc(method)
         require(ok.method is AMQP.Basic.GetOk) { "Expected `basic.get-ok`, not ${ok.method.methodName()}" }
         return ok.method
@@ -81,7 +83,7 @@ public value class BasicMethods(private val channel: Channel) {
      * @param method
      */
     public suspend fun ack(method: AMQP.Basic.Ack) {
-        channel.send(method)
+        /*channel.mutex.withLock { */channel.send(method)/* }*/
     }
 
     public suspend fun ack(block: AMQP.Basic.Ack.Builder.() -> Unit) {
@@ -91,7 +93,7 @@ public value class BasicMethods(private val channel: Channel) {
     /**
      * @param method
      */
-    public suspend fun recover(method: AMQP.Basic.Recover): AMQP.Basic.RecoverOk {
+    public suspend fun recover(method: AMQP.Basic.Recover): AMQP.Basic.RecoverOk /*= channel.mutex.withLock */{
         val ok = channel.rpc(method)
         require(ok.method is AMQP.Basic.RecoverOk) { "Expected `basic.recover-ok`, not ${ok.method.methodName()}" }
         return ok.method
@@ -105,7 +107,7 @@ public value class BasicMethods(private val channel: Channel) {
      * @param method
      */
     public suspend fun nack(method: AMQP.Basic.Nack) {
-        channel.send(method)
+        /*channel.mutex.withLock { */channel.send(method)/* }*/
     }
 
     public suspend fun nack(block: AMQP.Basic.Nack.Builder.() -> Unit) {

@@ -11,7 +11,7 @@ repositories {
 
 dependencies {
     /* gradle bullshit */
-    implementation(kotlin("gradle-plugin", version = "1.7.10"))
+    implementation(kotlin("gradle-plugin", version = "1.7.21"))
 
     implementation(gradleApi())
     implementation(localGroovy())
