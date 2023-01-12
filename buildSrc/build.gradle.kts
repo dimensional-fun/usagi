@@ -11,14 +11,14 @@ repositories {
 
 dependencies {
     /* gradle bullshit */
-    implementation(kotlin("gradle-plugin", version = "1.7.10"))
+    implementation(kotlin("gradle-plugin", version = "1.7.21"))
 
     implementation(gradleApi())
     implementation(localGroovy())
 
     /* misc */
 //    implementation("org.jetbrains.kotlinx:atomicfu-gradle-plugin:0.17.3")
-    implementation("fun.dimensional.gradle:gradle-tools:1.0.3")
+    implementation("fun.dimensional.gradle:gradle-tools:1.1.2")
 
     /* used for code-generation */
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0")

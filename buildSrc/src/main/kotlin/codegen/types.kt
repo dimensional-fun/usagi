@@ -6,7 +6,6 @@ import com.squareup.kotlinpoet.*
 import kotlinx.serialization.json.*
 
 val LONG_STRING = ClassName("$protocolPackage.type", "LongString")
-val FIELD_TABLE = ClassName("$protocolPackage.type", "FieldTable")
 val INSTANT = ClassName("kotlinx.datetime", "Instant")
 
 enum class RequiredBehavior {
@@ -66,11 +65,11 @@ object AMQP {
         /** used to find this type within the codegen json */
         val id: String get() = name.toLowerCase()
 
-        /** method within the ProtoolReader used to read this type. */
+        /** method within the ProtocolReader used to read this type. */
         val readerMethod: String
             get() = "read$libraryName"
 
-        /** method within the ProtoolWriter used to write this type. */
+        /** method within the ProtocolWriter used to write this type. */
         val writerMethod: String
             get() = "write$libraryName"
 

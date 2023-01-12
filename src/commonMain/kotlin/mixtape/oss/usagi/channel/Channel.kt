@@ -1,8 +1,8 @@
 package mixtape.oss.usagi.channel
 
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.sync.withLock
 import mixtape.oss.usagi.channel.command.Command
 import mixtape.oss.usagi.channel.consumer.Consumer
 import mixtape.oss.usagi.channel.consumer.Delivery
@@ -29,50 +29,51 @@ public class Channel(
     /**  */
     public val events: SharedFlow<ChannelEvent> get() = eventFlow
 
-    override suspend fun processIncomingCommand(command: Command): Boolean = when (command.method) {
-        // TODO: handle channel related shit here.
-        /* channel-specific commands. */
-        is AMQP.Channel.Close -> {
-            log.warn { "[Channel $id] Server requested close..." }
-            true
+    override suspend fun processIncomingCommand(command: Command): Boolean {
+        if (command.method is AMQP.Channel.Close) {
+            processShutdown(command.method)
+            return true
         }
 
-        /* consumer-specific commands */
-        is AMQP.Basic.Deliver -> {
-            val consumer = consumerMap[command.method.consumerTag]
-            if (consumer != null) {
-                val delivery = Delivery(
-                    consumer,
-                    Delivery.Envelope(
-                        command.method.deliveryTag,
-                        command.method.redelivered,
-                        command.method.exchange,
-                        command.method.routingKey,
-                    ),
-                    command.header?.properties.into(),
-                    command.body!!.asBytes()
-                )
+        return when (command.method) {
 
-                eventFlow.emit(MessagePublishedEvent(consumer, delivery))
+            /* consumer-specific commands */
+            is AMQP.Basic.Deliver -> {
+                val consumer = consumerMap[command.method.consumerTag]
+                if (consumer != null) {
+                    val delivery = Delivery(
+                        consumer,
+                        Delivery.Envelope(
+                            command.method.deliveryTag,
+                            command.method.redelivered,
+                            command.method.exchange,
+                            command.method.routingKey,
+                        ),
+                        command.header?.properties.into(),
+                        command.body!!.asBytes()
+                    )
+
+                    eventFlow.emit(MessagePublishedEvent(consumer, delivery))
+                }
+
+                true
             }
 
-            true
-        }
+            is AMQP.Basic.Cancel -> {
+                true
+            }
 
-        is AMQP.Basic.Cancel -> {
-            true
-        }
+            is AMQP.Basic.CancelOk -> {
+                !inRPC // forward this to RPC
+            }
 
-        is AMQP.Basic.CancelOk -> {
-            false // forward this to RPC
-        }
+            is AMQP.Basic.RecoverOk -> {
+                !inRPC // forward this to RPC
+            }
 
-        is AMQP.Basic.RecoverOk -> {
-            false // forward this to RPC
+            /* everything else */
+            else -> false
         }
-
-        /* everything else */
-        else -> false
     }
 
     internal suspend fun createConsumer(method: AMQP.Basic.Consume): Consumer {
@@ -83,5 +84,16 @@ public class Channel(
         consumerMap[consumer.tag] = consumer
 
         return consumer
+    }
+
+    private suspend fun processShutdown(method: AMQP.Channel.Close) {
+        log.debug { "[Channel $id] Server requested close: $method" }
+
+        try {
+            send(AMQP.Channel.CloseOk)
+        } finally {
+            connection.channels.free(this)
+            rpc?.cancel()
+        }
     }
 }

@@ -2,6 +2,7 @@ package mixtape.oss.usagi.connection
 
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
+import io.ktor.network.tls.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.*
@@ -15,6 +16,7 @@ import mixtape.oss.usagi.connection.frame.Frame
 import mixtape.oss.usagi.connection.frame.FrameTooLargeException
 import mixtape.oss.usagi.connection.frame.FrameType
 import mixtape.oss.usagi.protocol.AMQP
+import mixtape.oss.usagi.protocol.Uri
 import mixtape.oss.usagi.protocol.Method
 import mixtape.oss.usagi.protocol.ProtocolVersion
 import mixtape.oss.usagi.protocol.reader.amqp
@@ -33,18 +35,23 @@ public class Connection(private val socket: Socket, internal val resources: Conn
          *
          */
         public suspend fun connect(
-            brokerAddress: SocketAddress,
+            uri: Uri,
             resources: ConnectionResources,
         ): Connection {
             /* create a new TCP socket connection to the specified broker address */
             val (connection, took) = measureTimedValue {
                 val socket = aSocket(SelectorManager(resources.scope.coroutineContext))
                     .tcp()
-                    .connect(brokerAddress)
+                    .connect(InetSocketAddress(uri.host, uri.port))
+
+                val connection = if (uri.secure) {
+                    Connection(socket.tls(resources.scope.coroutineContext), resources)
+                } else {
+                    Connection(socket, resources)
+                }
 
                 /* create a new AMQP connection instance and negotiate with the broker. */
-                val connection = Connection(socket, resources)
-                connection.initialize()
+                connection.initialize(uri)
             }
 
             log.debug { "Initialized connection in $took" }
@@ -176,7 +183,7 @@ public class Connection(private val socket: Socket, internal val resources: Conn
     /**
      * Initializes this AMQP connection.
      */
-    public suspend fun initialize(): Connection {
+    public suspend fun initialize(uri: Uri): Connection {
         running = true
 
         /* write the protocol frame header. */
@@ -210,17 +217,19 @@ public class Connection(private val socket: Socket, internal val resources: Conn
                 ?: error("No compatible auth mechanisms found, server offered: $serverAuthMechanisms.")
 
             /* start authentication sequence */
-            val (username, password) = resources.credentials // TODO: support dynamic credentials
-
             var challenge: LongString? = null
             while (tune == null) {
                 val startOk = AMQP.Connection.StartOk {
                     if (challenge == null) {
-                        clientProperties = resources.connectionProperties
+                        clientProperties = resources.clientProperties.build()
                         mechanism = authMechanism.name
                     }
 
-                    response = authMechanism.handleChallenge(challenge, username, password)
+                    response = authMechanism.handleChallenge(
+                        challenge,
+                        uri.username,
+                        uri.password
+                    )
                 }
 
                 val response = channel0.rpc(startOk)
@@ -250,7 +259,7 @@ public class Connection(private val socket: Socket, internal val resources: Conn
         heartbeatDispatcher.start(preferences.heartbeat.seconds)
 
         /* send connection.open and wait for ok */
-        val ok = channel0.rpc(AMQP.Connection.Open(resources.virtualHost, "", false)).method
+        val ok = channel0.rpc(AMQP.Connection.Open(uri.virtualHost, "", false)).method
         require(ok is AMQP.Connection.OpenOk) {
             "Expected connection.open-ok but got: $ok"
         }
@@ -260,7 +269,7 @@ public class Connection(private val socket: Socket, internal val resources: Conn
 
     /** Handle a close method */
     internal suspend fun handleConnectionClose(method: AMQP.Connection.Close) {
-        channel0.send(AMQP.Connection.CloseOk())
+        channel0.send(AMQP.Connection.CloseOk)
         cancelCause = ConnectionCancelledException(method, null, false)
         dispose()
     }

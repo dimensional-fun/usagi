@@ -37,7 +37,7 @@ internal class Channel0(connection: Connection) : BaseChannel(connection, 0) {
     } else {
         when (command.method) {
             is AMQP.Connection.Close -> {
-                send(AMQP.Connection.CloseOk())
+                send(AMQP.Connection.CloseOk)
                 true
             }
 

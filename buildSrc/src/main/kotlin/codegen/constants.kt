@@ -5,7 +5,8 @@ import com.squareup.kotlinpoet.ClassName
 val protocolPackage = project.rootPackage + ".protocol"
 val channelPackage = project.rootPackage + ".channel"
 
-val INDENT = "   "
+//val INDENT = "   "
+val INDENT = "  "
 
 val DELEGATES = ClassName("kotlin.properties", "Delegates")
 
