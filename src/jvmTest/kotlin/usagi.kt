@@ -25,7 +25,7 @@ suspend fun main() {
 suspend fun javaRabbitMq() {
     val connectionFactory = ConnectionFactory()
     connectionFactory.useNio()
-    connectionFactory.setUri("amqp://mixtape:6enV6EL1VqQoRNu9@154.53.33.228:5672")
+    connectionFactory.setUri("amqp://localhost")
 
     /* create connection & channel */
     val connection = connectionFactory.newConnection()
@@ -64,7 +64,7 @@ suspend fun javaRabbitMq() {
 
 suspend fun usagi() {
     val connection = Usagi.connect(
-        "amqp://mixtape:6enV6EL1VqQoRNu9@154.53.33.228:5672"
+        "amqp://localhost"
     )
 
     val channel = connection.channels.create()!!
