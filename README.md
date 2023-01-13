@@ -11,6 +11,8 @@ A kotlin multi-platform AMQP 0.9.1 client.
 
 **We are looking for contributors! If you are looking for a kotlin multiplatform AMQP client please consider opening PRs and Issues, it is very appreciated.**
 
+[**Discord Server**](https://discord.gg/8R4d8RydT4)
+
 ## Installation
 
 current version: *coming soon*
