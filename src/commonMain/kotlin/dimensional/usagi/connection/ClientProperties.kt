@@ -16,13 +16,13 @@ public class ClientProperties {
 
     public var product: String = "usagi"
 
-    public var information: String = "https://github.com/mixtape-bot/usagi"
+    public var information: String = "https://github.com/dimensional-fun/usagi"
 
     public var platform: String = "Kotlin ${KotlinVersion.CURRENT}"
 
     public var version: String = "0.0.0"
 
-    public var copyright: String = "Copyright (c) 2019 - 2022 Dimensional Fun"
+    public var copyright: String = "Copyright (c) 2019 - 2023 Dimensional Fun"
 
     public var connectionName: String? = null
 
