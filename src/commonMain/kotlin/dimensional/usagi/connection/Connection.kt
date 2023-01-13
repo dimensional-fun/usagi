@@ -10,7 +10,7 @@ import dimensional.usagi.protocol.Method
 import dimensional.usagi.protocol.ProtocolVersion
 import dimensional.usagi.protocol.Uri
 import dimensional.usagi.protocol.reader.amqp
-import dimensional.usagi.protocol.type.LongString
+import dimensional.usagi.protocol.LongString
 import dimensional.usagi.protocol.writer.amqp
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*

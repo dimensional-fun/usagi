@@ -1,6 +1,6 @@
 package dimensional.usagi.protocol.writer
 
-import dimensional.usagi.protocol.type.LongString
+import dimensional.usagi.protocol.LongString
 import dimensional.usagi.tools.into
 import io.ktor.utils.io.core.*
 import kotlinx.datetime.Instant

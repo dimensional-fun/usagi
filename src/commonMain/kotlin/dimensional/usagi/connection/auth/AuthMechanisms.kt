@@ -2,7 +2,7 @@ package dimensional.usagi.connection.auth
 
 import dimensional.usagi.connection.auth.AuthMechanisms.External
 import dimensional.usagi.connection.auth.AuthMechanisms.Plain
-import dimensional.usagi.protocol.type.LongString
+import dimensional.usagi.protocol.LongString
 
 /**
  * Some of our built-in auth mechanisms.

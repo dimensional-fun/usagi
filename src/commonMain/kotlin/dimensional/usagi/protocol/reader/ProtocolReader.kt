@@ -1,6 +1,6 @@
 package dimensional.usagi.protocol.reader
 
-import dimensional.usagi.protocol.type.LongString
+import dimensional.usagi.protocol.LongString
 import io.ktor.utils.io.core.*
 import kotlinx.datetime.Instant
 

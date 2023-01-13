@@ -1,6 +1,6 @@
 package dimensional.usagi.connection.auth
 
-import dimensional.usagi.protocol.type.LongString
+import dimensional.usagi.protocol.LongString
 
 /**
  * Represents an authentication mechanism.
