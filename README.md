@@ -36,8 +36,12 @@ dependencies {
 **Create a Channel:**
 
 ```kotlin
-val connection = Usagi.connect("amqp://guest:guest@localhost:5672")
-val channel = connection.channels.create() ?: error("Unable to create channel")
+val connection = Usagi("amqp://localhost") {
+    properties { connectionName = "my-service" }
+}
+
+val channel = connection.channels.create() 
+    ?: error("Unable to create channel")
 ```
 
 **Using Exchanges & Queues**
