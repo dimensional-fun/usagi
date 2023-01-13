@@ -63,9 +63,11 @@ suspend fun javaRabbitMq() {
 }
 
 suspend fun usagi() {
-    val connection = Usagi.connect(
-        "amqp://localhost"
-    )
+    val connection = Usagi("amqp://localhost") {
+        properties {
+            connectionName = "testing thing idk"
+        }
+    }
 
     val channel = connection.channels.create()!!
 
