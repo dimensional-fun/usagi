@@ -24,7 +24,7 @@ repositories {
 
 dependencies {
     // common:
-    implementation("dimensional.usagi:usagi:{VERSION}")
+    implementation("fun.dimensional:usagi:{VERSION}")
 }
 ```
 
