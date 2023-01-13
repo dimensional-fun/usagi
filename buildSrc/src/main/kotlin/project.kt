@@ -1,3 +1,3 @@
 object project {
-    val rootPackage = "mixtape.oss.usagi"
+    val rootPackage = "dimensional.usagi"
 }

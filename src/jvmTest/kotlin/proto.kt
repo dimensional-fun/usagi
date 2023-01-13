@@ -1,19 +1,17 @@
+import dimensional.usagi.protocol.AMQP
+import dimensional.usagi.protocol.Method
+import dimensional.usagi.protocol.kxser.Amqp
+import dimensional.usagi.protocol.kxser.annotations.AMQBit
+import dimensional.usagi.protocol.kxser.decode
+import dimensional.usagi.protocol.kxser.encode
+import dimensional.usagi.protocol.reader.MethodProtocolReader
+import dimensional.usagi.protocol.reader.amqp
+import dimensional.usagi.protocol.type.FieldTable
+import dimensional.usagi.protocol.type.LongString
+import dimensional.usagi.protocol.writer.MethodProtocolWriter
 import io.ktor.util.*
 import io.ktor.utils.io.core.*
 import kotlinx.serialization.Serializable
-import mixtape.oss.usagi.connection.ClientProperties
-import mixtape.oss.usagi.protocol.AMQP
-import mixtape.oss.usagi.protocol.Method
-import mixtape.oss.usagi.protocol.kxser.Amqp
-import mixtape.oss.usagi.protocol.kxser.annotations.AMQBit
-import mixtape.oss.usagi.protocol.kxser.decode
-import mixtape.oss.usagi.protocol.kxser.encode
-import mixtape.oss.usagi.protocol.reader.MethodProtocolReader
-import mixtape.oss.usagi.protocol.reader.amqp
-import mixtape.oss.usagi.protocol.type.FieldArray
-import mixtape.oss.usagi.protocol.type.FieldTable
-import mixtape.oss.usagi.protocol.type.LongString
-import mixtape.oss.usagi.protocol.writer.MethodProtocolWriter
 
 val ByteArray.methodReader: MethodProtocolReader get() = MethodProtocolReader(ByteReadPacket(this).amqp)
 
@@ -33,7 +31,6 @@ suspend fun main() {
 
     println(old.body.contentToString().encodeBase64())
     println(new.body.contentToString().encodeBase64())
-
 
     println(AMQP.readMethodFrom(old.body.methodReader))
 

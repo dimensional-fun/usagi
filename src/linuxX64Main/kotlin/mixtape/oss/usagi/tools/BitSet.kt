@@ -1,4 +1,4 @@
-package mixtape.oss.usagi.tools
+package dimensional.usagi.tools
 
 /**
  * Simplified version of java.util.BitSet

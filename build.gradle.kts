@@ -12,7 +12,7 @@ plugins {
 
 val versionRef = Version(0, 0, 1, release = ReleaseType.Snapshot)
 version = "$versionRef"
-group = "mixtape.oss.usagi"
+group = "dimensional.usagi"
 
 repositories {
     mavenCentral()

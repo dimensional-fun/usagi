@@ -1,19 +1,19 @@
-import com.rabbitmq.client.*
-import io.ktor.network.sockets.*
+import com.rabbitmq.client.AMQP
+import com.rabbitmq.client.CancelCallback
+import com.rabbitmq.client.ConnectionFactory
+import com.rabbitmq.client.DeliverCallback
+import dimensional.usagi.Usagi
+import dimensional.usagi.channel.consumer.on
+import dimensional.usagi.channel.event.MessagePublishedEvent
+import dimensional.usagi.channel.method.basic
+import dimensional.usagi.channel.method.exchange
+import dimensional.usagi.channel.method.queue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.job
 import mixtape.oss.kyuso.Kyuso
 import mixtape.oss.kyuso.tools.calculatingDelay
-import mixtape.oss.usagi.Usagi
-import mixtape.oss.usagi.channel.event.MessagePublishedEvent
-import mixtape.oss.usagi.channel.consumer.on
-import mixtape.oss.usagi.channel.method.basic
-import mixtape.oss.usagi.channel.method.exchange
-import mixtape.oss.usagi.channel.method.queue
-import mixtape.oss.usagi.connection.Connection
-import mixtape.oss.usagi.connection.ConnectionResources
-import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 val publishData = "lol".encodeToByteArray()
 val publishHeaders = mapOf("X-Testing" to true)
@@ -51,7 +51,7 @@ suspend fun javaRabbitMq() {
 
     /* publish messages every 20ms */
     val kyuso = Kyuso(Dispatchers.IO.limitedParallelism(1))
-    kyuso.dispatchEvery(calculatingDelay(20.milliseconds)) {
+    kyuso.dispatchEvery(calculatingDelay(1.seconds)) {
         val properties = AMQP.BasicProperties.Builder()
             .headers(publishHeaders)
             .build()
@@ -97,14 +97,14 @@ suspend fun usagi() {
         delivery.ack()
     }
 
-//    val kyuso = Kyuso(Dispatchers.IO.limitedParallelism(1))
-//    kyuso.dispatchEvery(calculatingDelay(20.milliseconds)) {
-//        channel.basic.publish {
-//            data = publishData
-//            options { routingKey = "test"; exchange = "test" }
-//            properties { headers = publishHeaders }
-//        }
-//    }
+    val kyuso = Kyuso(Dispatchers.IO.limitedParallelism(1))
+    kyuso.dispatchEvery(calculatingDelay(1.seconds)) {
+        channel.basic.publish {
+            data = publishData
+            options { routingKey = "test"; exchange = "test" }
+            properties { headers = publishHeaders }
+        }
+    }
 
     connection.resources.scope.coroutineContext[Job]!!.join()
 }
