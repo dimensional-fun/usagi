@@ -7,17 +7,8 @@ import dimensional.usagi.tools.RANGE
  * Preferences for an [Connection]
  */
 public data class ConnectionPreferences(
-    /**
-     * The max number of channels that can be created by this connection.
-     */
-    val maxChannelCount: Int = UShort.RANGE.endInclusive - 1,
-    /**
-     * The max number of bytes that a frame can take up.
-     */
+    val maxChannelCount: Int = DEFAULT_MAX_CHANNEL_COUNT,
     val maxFrameSize: Int = 0,
-    /**
-     * The interval to send heartbeats at, in seconds.
-     */
     val heartbeat: Int = 60
 ) {
     public companion object {
@@ -25,7 +16,7 @@ public data class ConnectionPreferences(
          * The default max number of channels that can be allocated
          * to a single connection.
          */
-        public const val DEFAULT_MAX_CHANNEL_COUNT: Int = 2047
+        public const val DEFAULT_MAX_CHANNEL_COUNT: Int = 65534
 
         /**
          * Negotiate between two values, the preferred [client] value

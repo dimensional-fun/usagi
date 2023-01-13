@@ -221,7 +221,7 @@ public class Connection(private val socket: Socket, internal val resources: Conn
             while (tune == null) {
                 val startOk = AMQP.Connection.StartOk {
                     if (challenge == null) {
-                        clientProperties = resources.clientProperties.build()
+                        clientProperties = resources.clientProperties
                         mechanism = authMechanism.name
                     }
 

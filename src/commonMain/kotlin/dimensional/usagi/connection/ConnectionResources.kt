@@ -13,10 +13,10 @@ import kotlin.time.Duration.Companion.seconds
 
 public data class ConnectionResources(
     val scope: CoroutineScope = CoroutineScope(Dispatchers.Default + Job()),
-    val protocol: Protocol = Protocol.DEFAULT,
-    val handshakeTimeout: Duration = 10.seconds,
-    val authMechanisms: List<AuthMechanism> = listOf(AuthMechanisms.Plain),
-    val preferences: ConnectionPreferences = ConnectionPreferences(),
-    val clientProperties: ClientProperties = ClientProperties(),
-    val eventFlow: MutableSharedFlow<ConnectionEvent> = MutableSharedFlow(extraBufferCapacity = Int.MAX_VALUE)
+    val protocol: Protocol,
+    val handshakeTimeout: Duration ,
+    val authMechanisms: List<AuthMechanism>,
+    val preferences: ConnectionPreferences,
+    val clientProperties: Map<String, Any?>,
+    val eventFlow: MutableSharedFlow<ConnectionEvent>
 )
