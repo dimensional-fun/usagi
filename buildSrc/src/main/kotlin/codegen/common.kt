@@ -9,7 +9,7 @@ fun TypeSpec.Builder.amqpToBuilderFunction(parent: AMQP.Parent): TypeSpec.Builde
 
     toBuilder.addCode("return Builder()\n")
     for (child in parent.children) {
-        toBuilder.addCode("  .${child.normalizedName}(${child.normalizedName})\n")
+        toBuilder.addCode("$INDENT.${child.normalizedName}(${child.normalizedName})\n")
     }
 
     return addFunction(toBuilder.build())
@@ -21,14 +21,15 @@ fun amqpCompanionBuilderFunction(returnType: TypeName): FunSpec {
         .addModifiers(KModifier.PUBLIC, KModifier.INLINE, KModifier.OPERATOR)
         .addParameter(
             ParameterSpec
-            .builder("block", LambdaTypeName.get(ClassName("", "Builder"), returnType = UNIT))
-            .defaultValue("{}")
-            .build())
-        .addCode("""
-                |return Builder()
-                |   .apply(block)
-                |   .build()
-                """.trimMargin())
+                .builder("block", LambdaTypeName.get(ClassName("", "Builder"), returnType = UNIT))
+                .defaultValue("{}")
+                .build()
+        )
+        .addCode(
+            """|return Builder()
+               |$INDENT.apply(block)
+               |$INDENT.build()""".trimMargin()
+        )
         .returns(returnType)
         .build()
 }

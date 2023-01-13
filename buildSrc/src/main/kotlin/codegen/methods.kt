@@ -6,19 +6,21 @@ fun generateMethodClass(
     amqpClass: AMQP.Class,
     amqpMethod: AMQP.Method,
 ): TypeSpec {
-    val specBuilder = TypeSpec.classBuilder(amqpMethod.normalizedName)
-        .superclass(METHOD)
-        .addModifiers(KModifier.PUBLIC)
-        //.addKdoc("Represents the AMQP method `${amqpClass.name}.${amqpMethod.name}` (${amqpMethod.id})")
-
-    if (amqpMethod.arguments.isNotEmpty()) {
-        specBuilder
-            .addModifiers(KModifier.DATA)
+    val specBuilder = if (amqpMethod.arguments.isNotEmpty()) {
+        TypeSpec.classBuilder(amqpMethod.normalizedName)
+            .superclass(METHOD)
+            .addModifiers(KModifier.PUBLIC, KModifier.DATA)
             .amqpMethodPrimaryConstructor(amqpMethod)
+            .amqpMethodCompanionObject(amqpMethod)
+            .amqpMethodBuilderClass(amqpMethod)
+            .amqpToBuilderFunction(amqpMethod)
+    } else {
+        TypeSpec.objectBuilder(amqpMethod.normalizedName)
+            .superclass(METHOD)
+            .addModifiers(KModifier.PUBLIC)
     }
 
     return specBuilder
-        .amqpMethodCompanionObject(amqpMethod)
         .overrideMethod("classId", SHORT) { addCode("return %L",amqpClass.id) }
         .overrideMethod("methodId", SHORT) { addCode("return %L", amqpMethod.id) }
         .overrideMethod("methodName", STRING) { addCode("return %S", "${amqpClass.name}.${amqpMethod.name}") }
@@ -30,8 +32,6 @@ fun generateMethodClass(
                 .amqpWriteArguments(amqpMethod)
                 .build()
         )
-        .amqpMethodBuilderClass(amqpMethod)
-        .amqpToBuilderFunction(amqpMethod)
         .build()
 }
 
@@ -40,9 +40,13 @@ fun TypeSpec.Builder.amqpMethodBuilderClass(amqpMethod: AMQP.Method): TypeSpec.B
         //.addKdoc("Convenience class for constructing an instance of [${amqpMethod.normalizedName}]")
         .addModifiers(KModifier.PUBLIC)
 
-    val builder = FunSpec.builder("build")
+    val buildMethod = FunSpec.builder("build")
         .returns(ClassName("", amqpMethod.normalizedName))
         .addCode("return ${amqpMethod.normalizedName}(")
+
+    val copyFromMethod = FunSpec.builder("copyFrom")
+        .addParameter("other", ClassName("", "Builder"))
+        .returns(ClassName("", "Builder"))
 
     for (argument in amqpMethod.arguments) {
         val type = argument.type.exposedType
@@ -79,18 +83,25 @@ fun TypeSpec.Builder.amqpMethodBuilderClass(amqpMethod: AMQP.Method): TypeSpec.B
 
         spec.addFunction(function.build())
 
-        /* add parameter to constructor call in builder. */
+        /* add parameter to constructor call in the build method. */
         val constructorArgument = CodeBlock.of(argument.normalizedName)
 
-        builder.addCode(
+        buildMethod.addCode(
             argument.type.convert?.takeIf { argument.type.internalType != argument.type.exposedType } ?: "%L",
             constructorArgument
         )
 
-        builder.addCode(", ")
+        buildMethod.addCode(", ")
+
+        /* add copy instruction to copyFrom method. */
+        copyFromMethod.addCode("%L = other.%L\n", constructorArgument, constructorArgument)
     }
 
-    spec.addFunction(builder
+    spec.addFunction(copyFromMethod
+        .addCode("return this")
+        .build())
+
+    spec.addFunction(buildMethod
         .addCode(")")
         .build())
 
@@ -117,7 +128,7 @@ fun TypeSpec.Builder.amqpMethodCompanionObject(amqpMethod: AMQP.Method): TypeSpe
 fun FunSpec.Builder.amqpReadArguments(amqpMethod: AMQP.Method): FunSpec.Builder {
     addCode("""
     |return ${amqpMethod.normalizedName}(
-    ${amqpMethod.arguments.joinToString(",\n") { "|   reader.${it.type.readerMethod}()" }}
+    ${amqpMethod.arguments.joinToString(",\n") { "|${INDENT}reader.${it.type.readerMethod}()" }}
     |)
     """.trimMargin())
 

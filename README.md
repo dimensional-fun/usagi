@@ -24,7 +24,7 @@ repositories {
 
 dependencies {
     // common:
-    implementation("mixtape.oss.usagi:usagi:{VERSION}")
+    implementation("dimensional.usagi:usagi:{VERSION}")
 }
 ```
 

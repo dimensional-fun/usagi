@@ -6,4 +6,4 @@
    - [ ] connections
 * [ ] handle consumer cancellation
 
-probably more that i need to write down but ill do that later!
+probably more that I need to write down but ill do that later!
