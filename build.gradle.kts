@@ -7,7 +7,7 @@ plugins {
     `maven-publish`
 
     kotlin("multiplatform")
-    kotlin("plugin.serialization") version "1.7.21"
+    kotlin("plugin.serialization") version "1.8.0"
 }
 
 val versionRef = Version(0, 0, 1, release = ReleaseType.Snapshot)
@@ -60,9 +60,9 @@ kotlin {
 
                 implementation("io.github.microutils:kotlin-logging:2.1.23")
 
-                implementation("io.ktor:ktor-network:2.1.3")
-                implementation("io.ktor:ktor-network-tls:2.1.3")
-                implementation("io.ktor:ktor-http:2.1.3")
+                implementation("io.ktor:ktor-network:2.2.2")
+                implementation("io.ktor:ktor-network-tls:2.2.2")
+                implementation("io.ktor:ktor-http:2.2.2")
             }
         }
 
