@@ -12,7 +12,7 @@ plugins {
 
 val versionRef = Version(0, 0, 1, release = ReleaseType.Snapshot)
 version = "$versionRef"
-group = "dimensional.usagi"
+group = "fun.dimensional"
 
 repositories {
     mavenCentral()
