@@ -2,6 +2,8 @@ import com.rabbitmq.client.AMQP
 import com.rabbitmq.client.CancelCallback
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.DeliverCallback
+import dimensional.kyuso.Kyuso
+import dimensional.kyuso.tools.calculatingDelay
 import dimensional.usagi.Usagi
 import dimensional.usagi.channel.consumer.on
 import dimensional.usagi.channel.event.MessagePublishedEvent
@@ -11,8 +13,6 @@ import dimensional.usagi.channel.method.queue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.job
-import mixtape.oss.kyuso.Kyuso
-import mixtape.oss.kyuso.tools.calculatingDelay
 import kotlin.time.Duration.Companion.seconds
 
 val publishData = "lol".encodeToByteArray()

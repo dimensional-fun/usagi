@@ -1,16 +1,14 @@
 package dimensional.usagi.connection
 
+import dimensional.kyuso.Kyuso
+import dimensional.kyuso.task.Task
 import dimensional.usagi.channel.ChannelManager
 import dimensional.usagi.connection.event.ConnectionEvent
 import dimensional.usagi.connection.frame.Frame
 import dimensional.usagi.connection.frame.FrameTooLargeException
 import dimensional.usagi.connection.frame.FrameType
-import dimensional.usagi.protocol.AMQP
-import dimensional.usagi.protocol.Method
-import dimensional.usagi.protocol.ProtocolVersion
-import dimensional.usagi.protocol.Uri
+import dimensional.usagi.protocol.*
 import dimensional.usagi.protocol.reader.amqp
-import dimensional.usagi.protocol.LongString
 import dimensional.usagi.protocol.writer.amqp
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
@@ -20,8 +18,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import mixtape.oss.kyuso.Kyuso
-import mixtape.oss.kyuso.task.Task
 import mu.KotlinLogging
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
