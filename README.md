@@ -79,8 +79,7 @@ channel.basic.publish {
 **Consuming Messages:**
 ```kotlin
 val consumer = channel.basic.consume {
-    exchangeName = "my-exchange"
-    routingKey = "my-routingKey"
+    queue = queueName
 }
 
 consumer.on<MessagePublishedEvent> {
