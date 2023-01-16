@@ -5,7 +5,6 @@ import dimensional.usagi.channel.command.Command
 import dimensional.usagi.channel.consumer.Consumer
 import dimensional.usagi.channel.consumer.Delivery
 import dimensional.usagi.channel.event.ChannelEvent
-import dimensional.usagi.channel.event.MessagePublishedEvent
 import dimensional.usagi.connection.Connection
 import dimensional.usagi.protocol.AMQP
 import dimensional.usagi.tools.into
@@ -21,12 +20,17 @@ public class Channel(
         private val log = KotlinLogging.logger {  }
     }
 
-    private val consumerMap = hashMapOf<String, Consumer>()
     private val eventFlow = MutableSharedFlow<ChannelEvent>(extraBufferCapacity = Int.MAX_VALUE)
+    private val consumerMap = hashMapOf<String, Consumer>()
 
-    /**  */
-    public val consumers: Map<String, Consumer> get() = object : Map<String, Consumer> by consumerMap {}
-    /**  */
+    /**
+     *
+     */
+    public val consumers: Map<String, Consumer> get() = consumerMap
+
+    /**
+     *
+     */
     public val events: SharedFlow<ChannelEvent> get() = eventFlow
 
     override suspend fun processIncomingCommand(command: Command): Boolean {
@@ -53,17 +57,22 @@ public class Channel(
                         command.body!!.asBytes()
                     )
 
-                    eventFlow.emit(MessagePublishedEvent(consumer, delivery))
+                    consumer.handle(delivery)
                 }
 
                 true
             }
 
             is AMQP.Basic.Cancel -> {
+                consumers[command.method.consumerTag]?.handle(command.method)
+                if (!command.method.nowait) send(AMQP.Basic.CancelOk(command.method.consumerTag))
                 true
             }
 
             is AMQP.Basic.CancelOk -> {
+                consumers[command.method.consumerTag]?.handle(command.method)
+                    ?: log.debug { "[Channel $id] Received `basic.cancel-ok` for an unknown consumer: ${command.method.consumerTag}" }
+
                 !inRPC // forward this to RPC
             }
 
@@ -94,6 +103,11 @@ public class Channel(
         require(ok.method is AMQP.Basic.ConsumeOk) { "Expected `basic.consume-ok`, not ${ok.method.methodName()}" }
 
         return createConsumer(ok.method.consumerTag)
+    }
+
+    @InternalUsagiAPI
+    public fun removeConsumer(tag: String): Consumer? {
+        return consumerMap.remove(tag)
     }
 
     private suspend fun processShutdown(method: AMQP.Channel.Close) {

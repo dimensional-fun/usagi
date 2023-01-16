@@ -73,7 +73,7 @@ public value class BasicMethods(private val channel: Channel) {
             .apply(block)
             .build()
 
-        /*channel.mutex.withLock { */channel.send(command)/* }*/
+        channel.send(command)
     }
 
     /**

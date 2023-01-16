@@ -82,7 +82,7 @@ val consumer = channel.basic.consume {
     queue = queueName
 }
 
-consumer.on<MessagePublishedEvent> {
+consumer.forEach { delivery ->
     println(delivery.data.encodeToString()) // >> 'Hello, World'
     delivery.ack(multiple = false)
 }

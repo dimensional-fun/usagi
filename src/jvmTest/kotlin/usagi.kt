@@ -5,14 +5,15 @@ import com.rabbitmq.client.DeliverCallback
 import dimensional.kyuso.Kyuso
 import dimensional.kyuso.tools.calculatingDelay
 import dimensional.usagi.Usagi
-import dimensional.usagi.channel.consumer.on
-import dimensional.usagi.channel.event.MessagePublishedEvent
+import dimensional.usagi.channel.consumer.forEach
 import dimensional.usagi.channel.method.basic
 import dimensional.usagi.channel.method.exchange
 import dimensional.usagi.channel.method.queue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.job
+import kotlinx.datetime.Clock
 import kotlin.time.Duration.Companion.seconds
 
 val publishData = "lol".encodeToByteArray()
@@ -49,7 +50,6 @@ suspend fun javaRabbitMq() {
         CancelCallback {  }
     )
 
-    /* publish messages every 20ms */
     val kyuso = Kyuso(Dispatchers.IO.limitedParallelism(1))
     kyuso.dispatchEvery(calculatingDelay(1.seconds)) {
         val properties = AMQP.BasicProperties.Builder()
@@ -73,13 +73,12 @@ suspend fun usagi() {
 
     channel.queue.declare {
         queue = "test"
-        durable = true
         autoDelete = true
     }
 
     channel.exchange.declare {
         exchange = "test"
-        autoDelete = true
+        autoDelete = false
     }
 
     channel.queue.bind {
@@ -91,7 +90,7 @@ suspend fun usagi() {
         queue = "test"
     }
 
-    consumer.on<MessagePublishedEvent> {
+    consumer.forEach { delivery ->
         println(delivery.data.decodeToString())
         println(delivery.properties)
         println(delivery.envelope)
@@ -100,13 +99,21 @@ suspend fun usagi() {
     }
 
     val kyuso = Kyuso(Dispatchers.IO.limitedParallelism(1))
-    kyuso.dispatchEvery(calculatingDelay(1.seconds)) {
+    val publishTask = kyuso.dispatchEvery(calculatingDelay(1.seconds)) {
         channel.basic.publish {
             data = publishData
             options { routingKey = "test"; exchange = "test" }
             properties { headers = publishHeaders }
         }
     }
+
+    kyuso.dispatchAfter(5.seconds) {
+        consumer.cancel()
+    }
+
+    consumer.wait()
+    publishTask.cancel()
+    println("consumer cancelled...")
 
     connection.resources.scope.coroutineContext[Job]!!.join()
 }

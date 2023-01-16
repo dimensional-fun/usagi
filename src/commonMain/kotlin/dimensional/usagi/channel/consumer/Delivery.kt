@@ -34,7 +34,6 @@ public data class Delivery(
      * Reject one or more received messages.
      *
      * @param multiple Whether to reject all messages up to this one.
-     *
      * @param requeue Whether the rejected message(s) should be re-queued instead of discarded/dead-lettered
      */
     public suspend fun nack(
