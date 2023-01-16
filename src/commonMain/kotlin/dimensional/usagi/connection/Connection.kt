@@ -271,7 +271,6 @@ public class Connection(private val socket: Socket, internal val resources: Conn
     }
 
     private suspend fun dispose() {
-        println("lmfao disposing")
         try {
             channels.shutdown()
             heartbeatDispatcher.stop()
