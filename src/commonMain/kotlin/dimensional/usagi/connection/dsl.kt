@@ -1,2 +1,0 @@
-package dimensional.usagi.connection
-
