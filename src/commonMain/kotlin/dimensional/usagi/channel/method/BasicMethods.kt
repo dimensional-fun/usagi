@@ -8,7 +8,8 @@ import dimensional.usagi.channel.consumer.Consumer
 import dimensional.usagi.protocol.AMQP
 import kotlin.jvm.JvmInline
 
-public val Channel.basic: BasicMethods get() = BasicMethods(this)
+public val Channel.basic: BasicMethods
+    get() = BasicMethods(this)
 
 @JvmInline
 public value class BasicMethods(private val channel: Channel) {
@@ -41,13 +42,20 @@ public value class BasicMethods(private val channel: Channel) {
     /**
      * @param method
      */
-    public suspend fun cancel(method: AMQP.Basic.Cancel): AMQP.Basic.CancelOk /*= channel.mutex.withLock */{
+    public suspend fun cancel(method: AMQP.Basic.Cancel): AMQP.Basic.CancelOk? /*= channel.mutex.withLock */{
+        if (method.nowait) {
+            channel.send(method)
+            return null
+        }
+
+        /* perform rpc */
         val ok = channel.rpc(method)
         require(ok.method is AMQP.Basic.CancelOk) { "Expected `basic.cancel-ok`, not ${ok.method.methodName()}" }
+
         return ok.method
     }
 
-    public suspend fun cancel(block: AMQP.Basic.Cancel.Builder.() -> Unit): AMQP.Basic.CancelOk {
+    public suspend fun cancel(block: AMQP.Basic.Cancel.Builder.() -> Unit): AMQP.Basic.CancelOk? {
         return cancel(AMQP.Basic.Cancel(block))
     }
 
