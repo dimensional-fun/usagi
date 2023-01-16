@@ -1,5 +1,6 @@
 package dimensional.usagi.channel
 
+import dimensional.usagi.annotations.InternalUsagiAPI
 import dimensional.usagi.channel.command.Command
 import dimensional.usagi.channel.consumer.Consumer
 import dimensional.usagi.channel.consumer.Delivery
@@ -75,14 +76,24 @@ public class Channel(
         }
     }
 
-    internal suspend fun createConsumer(method: AMQP.Basic.Consume): Consumer {
+    @InternalUsagiAPI
+    public fun createConsumer(tag: String): Consumer {
+        val consumer = Consumer(this, tag)
+        consumerMap[tag] = consumer
+
+        return consumer
+    }
+
+    @InternalUsagiAPI
+    public suspend fun createConsumer(method: AMQP.Basic.Consume): Consumer {
+        require (!method.nowait) {
+            "Cannot create a consumer when `basic.consume.no-wait` is `true`"
+        }
+
         val ok = rpc(method)
         require(ok.method is AMQP.Basic.ConsumeOk) { "Expected `basic.consume-ok`, not ${ok.method.methodName()}" }
 
-        val consumer = Consumer(this, ok.method.consumerTag)
-        consumerMap[consumer.tag] = consumer
-
-        return consumer
+        return createConsumer(ok.method.consumerTag)
     }
 
     private suspend fun processShutdown(method: AMQP.Channel.Close) {

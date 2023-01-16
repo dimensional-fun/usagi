@@ -1,5 +1,6 @@
 package dimensional.usagi.channel.method
 
+import dimensional.usagi.annotations.InternalUsagiAPI
 import dimensional.usagi.channel.Channel
 import dimensional.usagi.channel.command.Command
 import dimensional.usagi.channel.command.ContentBody
@@ -29,6 +30,7 @@ public value class BasicMethods(private val channel: Channel) {
     /**
      * @param method
      */
+    @OptIn(InternalUsagiAPI::class)
     public suspend fun consume(method: AMQP.Basic.Consume): Consumer {
         return channel.createConsumer(method)
     }
