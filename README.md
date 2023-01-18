@@ -52,7 +52,9 @@ channel.exchange.declare {
     exchange = "my-exchange" 
 }
 
-val queueName = channel.queue.declare().queue
+val queueName = channel.queue.declare()?.queue
+    ?: error("Unable to declare queue")
+
 channel.queue.bind {
     exchange = "my-exchange"
     queue = queueName
@@ -63,14 +65,14 @@ channel.queue.bind {
 **Publishing Messages:**
 ```kotlin
 channel.basic.publish {
-    data = "Hello, World!".decodeToString()
+    data = "Hello, World!".encodeToByteArray()
     
     properties {
         contentType = "text/plain"
     }
     
     options {
-        exchangeName = "my-exchange"
+        exchange = "my-exchange"
         routingKey = "my-routing-key"
     }
 }
@@ -83,7 +85,7 @@ val consumer = channel.basic.consume {
 }
 
 consumer.forEach { delivery ->
-    println(delivery.data.encodeToString()) // >> 'Hello, World'
+    println(delivery.data.decodeToString()) // >> 'Hello, World'
     delivery.ack(multiple = false)
 }
 ```
