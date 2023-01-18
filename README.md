@@ -54,7 +54,7 @@ channel.exchange.declare {
 
 val queueName = channel.queue.declare()?.queue
     ?: error("Unable to declare queue")
-d
+
 channel.queue.bind {
     exchange = "my-exchange"
     queue = queueName
