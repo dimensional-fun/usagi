@@ -6,14 +6,9 @@ import dimensional.kyuso.Kyuso
 import dimensional.kyuso.tools.calculatingDelay
 import dimensional.usagi.Usagi
 import dimensional.usagi.channel.consumer.forEach
-import dimensional.usagi.channel.method.basic
-import dimensional.usagi.channel.method.exchange
-import dimensional.usagi.channel.method.queue
+import dimensional.usagi.channel.method.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.job
-import kotlinx.datetime.Clock
 import kotlin.time.Duration.Companion.seconds
 
 val publishData = "lol".encodeToByteArray()
@@ -115,5 +110,5 @@ suspend fun usagi() {
     publishTask.cancel()
     println("consumer cancelled...")
 
-    connection.resources.scope.coroutineContext[Job]!!.join()
+    connection.resources.scope.coroutineContext.job.join()
 }

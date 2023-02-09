@@ -3,7 +3,7 @@ package codegen
 import com.squareup.kotlinpoet.ClassName
 
 val protocolPackage = project.rootPackage + ".protocol"
-val channelPackage = project.rootPackage + ".channel"
+val channelPackage  = project.rootPackage + ".channel"
 
 //val INDENT = "   "
 val INDENT = "  "
@@ -11,6 +11,11 @@ val INDENT = "  "
 val DELEGATES = ClassName("kotlin.properties", "Delegates")
 
 val METHOD = ClassName(protocolPackage, "Method")
+
+val CHANNEL = ClassName(channelPackage, "Channel")
+
+val LONG_STRING = ClassName(protocolPackage, "LongString")
+val INSTANT = ClassName("kotlinx.datetime", "Instant")
 
 val CONTENT_HEADER = ClassName("$channelPackage.command", "ContentHeader")
 val CONTENT_HEADER_PROPERTIES = CONTENT_HEADER.nestedClass("Properties")

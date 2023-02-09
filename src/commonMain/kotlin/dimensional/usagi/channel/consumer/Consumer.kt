@@ -48,7 +48,10 @@ public data class Consumer(
      * @param noWait If `true`, the server will not send a `basic.cancel-ok` frame.
      */
     public suspend fun cancel(noWait: Boolean = false) {
-        channel.basic.cancel { consumerTag = tag; nowait(noWait) }
+        channel.basic.cancel {
+            consumerTag = tag
+            nowait = noWait
+        }
     }
 
     internal suspend fun handle(delivery: Delivery) {

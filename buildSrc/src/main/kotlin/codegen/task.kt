@@ -69,10 +69,15 @@ abstract class GenerateAMQPClasses : DefaultTask() {
             domains[alias.jsonPrimitive.content] = AMQP.Type.valueOf(type.jsonPrimitive.content.toUpperCase())
         }
 
-        val file = generateAMQP(data["name"]!!.jsonPrimitive.content, data["classes"]!!.jsonArray
+        val name = data["name"]!!.jsonPrimitive.content
+        val classes = data["classes"]!!.jsonArray
             .map { it.jsonObject }
-            .map { AMQP.Class.fromJson(domains, it) })
+            .map { AMQP.Class.fromJson(domains, it) }
 
-        generate(file)
+        classes
+            .mapNotNull { generateChannelMethodHelpers(name, it) }
+            .map(::generate)
+
+        generate(generateAMQP(name, classes))
     }
 }

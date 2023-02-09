@@ -6,6 +6,14 @@ import dimensional.usagi.protocol.reader.MethodProtocolReader
 import dimensional.usagi.protocol.reader.ProtocolPropertiesReader
 import dimensional.usagi.protocol.writer.MethodProtocolWriter
 import dimensional.usagi.protocol.writer.ProtocolPropertiesWriter
+import kotlin.Any
+import kotlin.Boolean
+import kotlin.Int
+import kotlin.Long
+import kotlin.Short
+import kotlin.String
+import kotlin.Unit
+import kotlin.collections.Map
 import kotlinx.datetime.Instant
 
 public object AMQP {
@@ -115,11 +123,11 @@ public object AMQP {
 
   public object Connection {
     public data class Start(
-        public val versionMajor: Int,
-        public val versionMinor: Int,
-        public val serverProperties: Map<String, Any?>,
-        public val mechanisms: LongString,
-        public val locales: LongString,
+      public val versionMajor: Int,
+      public val versionMinor: Int,
+      public val serverProperties: Map<String, Any?>,
+      public val mechanisms: LongString,
+      public val locales: LongString,
     ) : Method() {
       public fun toBuilder(): Builder = Builder()
         .versionMajor(versionMajor)
@@ -209,10 +217,10 @@ public object AMQP {
     }
 
     public data class StartOk(
-        public val clientProperties: Map<String, Any?>,
-        public val mechanism: String,
-        public val response: LongString,
-        public val locale: String,
+      public val clientProperties: Map<String, Any?>,
+      public val mechanism: String,
+      public val response: LongString,
+      public val locale: String,
     ) : Method() {
       public fun toBuilder(): Builder = Builder()
         .clientProperties(clientProperties)
@@ -290,7 +298,7 @@ public object AMQP {
     }
 
     public data class Secure(
-        public val challenge: LongString,
+      public val challenge: LongString,
     ) : Method() {
       public fun toBuilder(): Builder = Builder()
         .challenge(challenge)
@@ -335,7 +343,7 @@ public object AMQP {
     }
 
     public data class SecureOk(
-        public val response: LongString,
+      public val response: LongString,
     ) : Method() {
       public fun toBuilder(): Builder = Builder()
         .response(response)
@@ -784,8 +792,8 @@ public object AMQP {
     }
 
     public data class UpdateSecret(
-        public val newSecret: LongString,
-        public val reason: String,
+      public val newSecret: LongString,
+      public val reason: String,
     ) : Method() {
       public fun toBuilder(): Builder = Builder()
         .newSecret(newSecret)
@@ -902,7 +910,7 @@ public object AMQP {
     }
 
     public data class OpenOk(
-        public val channelId: LongString,
+      public val channelId: LongString,
     ) : Method() {
       public fun toBuilder(): Builder = Builder()
         .channelId(channelId)

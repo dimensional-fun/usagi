@@ -5,9 +5,6 @@ package codegen
 import com.squareup.kotlinpoet.*
 import kotlinx.serialization.json.*
 
-val LONG_STRING = ClassName("$protocolPackage.type", "LongString")
-val INSTANT = ClassName("kotlinx.datetime", "Instant")
-
 enum class RequiredBehavior {
     NotNullDelegate,
     LateInit
@@ -83,7 +80,7 @@ object AMQP {
         val properties: List<ClassProperty> = emptyList(),
     ) : Parent {
         companion object {
-            fun fromJson(domains: Map<String, Type>, classData: JsonObject): Class = Class(
+            fun fromJson(domains: Map<String, Type>, classData: JsonObject, methodIgnoreList: IntArray = IntArray(0)): Class = Class(
                 classData["id"]!!.jsonPrimitive.int,
                 classData["name"]!!.jsonPrimitive.content,
                 classData["methods"]!!.jsonArray
