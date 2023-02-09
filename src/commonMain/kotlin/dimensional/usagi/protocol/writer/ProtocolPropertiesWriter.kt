@@ -1,3 +1,6 @@
+// Some of this code is adapted from
+// https://github.com/rabbitmq/rabbitmq-java-client/blob/main/src/main/java/com/rabbitmq/client/impl/ContentHeaderPropertyWriter.java
+
 package dimensional.usagi.protocol.writer
 
 public class ProtocolPropertiesWriter(writer: ProtocolWriter): ProtocolWriter by writer {

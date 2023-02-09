@@ -1,3 +1,6 @@
+// Some of this code is adapted from
+// https://github.com/rabbitmq/rabbitmq-java-client/blob/main/src/main/java/com/rabbitmq/client/impl/MethodArgumentReader.java
+
 package dimensional.usagi.protocol.reader
 
 import io.ktor.utils.io.core.*
@@ -15,7 +18,6 @@ public class MethodProtocolReader(private val delegate: ProtocolReader) : Protoc
      */
     private var nextBitMask = 0x100
 
-    /* SCUFFED FUCKING SHIT AHHHHH */
     public suspend fun readBit(): Boolean {
         if (nextBitMask > 0x80) {
             bits = delegate.readOctet()

@@ -1,3 +1,6 @@
+// Some of this code is adapted from
+// https://github.com/rabbitmq/rabbitmq-java-client/blob/main/src/main/java/com/rabbitmq/client/impl/MethodArgumentWriter.java
+
 package dimensional.usagi.protocol.writer
 
 import io.ktor.utils.io.core.*
