@@ -10,7 +10,7 @@ plugins {
     kotlin("plugin.serialization") version "1.8.0"
 }
 
-val versionRef = Version(0, 0, 2, release = ReleaseType.Snapshot)
+val versionRef = Version(0, 0, 4, release = ReleaseType.Snapshot)
 version = "$versionRef"
 group = "fun.dimensional"
 
