@@ -22,10 +22,14 @@ public value class BasicMethods(
     return ok.method
   }
 
-  public suspend fun cancel(block: AMQP.Basic.Cancel.Builder.() -> Unit): AMQP.Basic.CancelOk =
+  public suspend fun cancel(block: AMQP.Basic.Cancel.Builder.() -> Unit): AMQP.Basic.CancelOk? =
       cancel(AMQP.Basic.Cancel.Builder().apply(block).build())
 
-  public suspend fun cancel(method: AMQP.Basic.Cancel): AMQP.Basic.CancelOk {
+  public suspend fun cancel(method: AMQP.Basic.Cancel): AMQP.Basic.CancelOk? {
+    if (method.nowait) {
+      channel.send(method)
+      return null
+    }
     val ok = channel.rpc(method)
     require(ok.method is AMQP.Basic.CancelOk) { 
       "Expected 'basic.cancel-ok', not ${ok.method.methodName()}"

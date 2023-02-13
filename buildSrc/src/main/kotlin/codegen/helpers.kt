@@ -106,12 +106,13 @@ fun TypeSpec.Builder.generateClassHelperMethods(amqpClass: AMQP.Class, methods: 
         if (method.synchronous) {
             val response = classContainer.nestedClass("${method.normalizedName}Ok")
 
-            if (method.arguments.any { it.name == "no-wait" }) {
+            if (method.arguments.any { it.name == "nowait" }) {
                 rawMethodSpec.addCode(
                     """|if (method.nowait) {
                        |  channel.send(method)
                        |  return null
-                       |}\n""".trimIndent()
+                       |}
+                       |""".trimMargin()
                 )
 
                 val returnType = response.copy(nullable = true)

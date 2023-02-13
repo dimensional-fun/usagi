@@ -10,10 +10,14 @@ import kotlin.jvm.JvmInline
 public value class QueueMethods(
   public val channel: Channel,
 ) {
-  public suspend fun declare(block: AMQP.Queue.Declare.Builder.() -> Unit): AMQP.Queue.DeclareOk =
+  public suspend fun declare(block: AMQP.Queue.Declare.Builder.() -> Unit): AMQP.Queue.DeclareOk? =
       declare(AMQP.Queue.Declare.Builder().apply(block).build())
 
-  public suspend fun declare(method: AMQP.Queue.Declare): AMQP.Queue.DeclareOk {
+  public suspend fun declare(method: AMQP.Queue.Declare): AMQP.Queue.DeclareOk? {
+    if (method.nowait) {
+      channel.send(method)
+      return null
+    }
     val ok = channel.rpc(method)
     require(ok.method is AMQP.Queue.DeclareOk) { 
       "Expected 'queue.declare-ok', not ${ok.method.methodName()}"
@@ -22,10 +26,14 @@ public value class QueueMethods(
     return ok.method
   }
 
-  public suspend fun bind(block: AMQP.Queue.Bind.Builder.() -> Unit): AMQP.Queue.BindOk =
+  public suspend fun bind(block: AMQP.Queue.Bind.Builder.() -> Unit): AMQP.Queue.BindOk? =
       bind(AMQP.Queue.Bind.Builder().apply(block).build())
 
-  public suspend fun bind(method: AMQP.Queue.Bind): AMQP.Queue.BindOk {
+  public suspend fun bind(method: AMQP.Queue.Bind): AMQP.Queue.BindOk? {
+    if (method.nowait) {
+      channel.send(method)
+      return null
+    }
     val ok = channel.rpc(method)
     require(ok.method is AMQP.Queue.BindOk) { 
       "Expected 'queue.bind-ok', not ${ok.method.methodName()}"
@@ -34,10 +42,14 @@ public value class QueueMethods(
     return ok.method
   }
 
-  public suspend fun purge(block: AMQP.Queue.Purge.Builder.() -> Unit): AMQP.Queue.PurgeOk =
+  public suspend fun purge(block: AMQP.Queue.Purge.Builder.() -> Unit): AMQP.Queue.PurgeOk? =
       purge(AMQP.Queue.Purge.Builder().apply(block).build())
 
-  public suspend fun purge(method: AMQP.Queue.Purge): AMQP.Queue.PurgeOk {
+  public suspend fun purge(method: AMQP.Queue.Purge): AMQP.Queue.PurgeOk? {
+    if (method.nowait) {
+      channel.send(method)
+      return null
+    }
     val ok = channel.rpc(method)
     require(ok.method is AMQP.Queue.PurgeOk) { 
       "Expected 'queue.purge-ok', not ${ok.method.methodName()}"
@@ -46,10 +58,14 @@ public value class QueueMethods(
     return ok.method
   }
 
-  public suspend fun delete(block: AMQP.Queue.Delete.Builder.() -> Unit): AMQP.Queue.DeleteOk =
+  public suspend fun delete(block: AMQP.Queue.Delete.Builder.() -> Unit): AMQP.Queue.DeleteOk? =
       delete(AMQP.Queue.Delete.Builder().apply(block).build())
 
-  public suspend fun delete(method: AMQP.Queue.Delete): AMQP.Queue.DeleteOk {
+  public suspend fun delete(method: AMQP.Queue.Delete): AMQP.Queue.DeleteOk? {
+    if (method.nowait) {
+      channel.send(method)
+      return null
+    }
     val ok = channel.rpc(method)
     require(ok.method is AMQP.Queue.DeleteOk) { 
       "Expected 'queue.delete-ok', not ${ok.method.methodName()}"
