@@ -63,11 +63,11 @@ kotlin {
                 implementation("io.github.microutils:kotlin-logging:2.1.23")
 
                 /* TCP Sockets */
-                implementation("io.ktor:ktor-network:2.2.2")
-                implementation("io.ktor:ktor-network-tls:2.2.2")
+                implementation("io.ktor:ktor-network:2.2.3")
+                implementation("io.ktor:ktor-network-tls:2.2.3")
 
                 /* `Url` class */
-                implementation("io.ktor:ktor-http:2.2.2")
+                implementation("io.ktor:ktor-http:2.2.3")
             }
         }
 
