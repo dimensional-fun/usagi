@@ -5,8 +5,9 @@ import com.rabbitmq.client.DeliverCallback
 import dimensional.kyuso.Kyuso
 import dimensional.kyuso.tools.calculatingDelay
 import dimensional.usagi.Usagi
-import dimensional.usagi.channel.consumer.forEach
+import dimensional.usagi.channel.event.MessageReturnedEvent
 import dimensional.usagi.channel.method.*
+import dimensional.usagi.channel.on
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.job
 import kotlin.time.Duration.Companion.seconds
@@ -65,50 +66,18 @@ suspend fun usagi() {
     }
 
     val channel = connection.channels.create()!!
-
-    channel.queue.declare {
-        queue = "test"
-        autoDelete = true
-    }
-
-    channel.exchange.declare {
-        exchange = "test"
-        autoDelete = false
-    }
-
-    channel.queue.bind {
-        exchange = "test"
-        routingKey = "test"
-    }
-
-    val consumer = channel.basic.consume {
-        queue = "test"
-    }
-
-    consumer.forEach { delivery ->
-        println(delivery.data.decodeToString())
-        println(delivery.properties)
-        println(delivery.envelope)
-
-        delivery.ack()
+    channel.on<MessageReturnedEvent> {
+        println(this)
     }
 
     val kyuso = Kyuso(Dispatchers.IO.limitedParallelism(1))
-    val publishTask = kyuso.dispatchEvery(calculatingDelay(1.seconds)) {
+    kyuso.dispatchEvery(calculatingDelay(1.seconds)) {
         channel.basic.publish {
             data = publishData
-            options { routingKey = "test"; exchange = "test" }
+            options { routingKey = "test"; exchange = "test"; mandatory = true }
             properties { headers = publishHeaders }
         }
     }
-
-    kyuso.dispatchAfter(5.seconds) {
-        consumer.cancel()
-    }
-
-    consumer.wait()
-    publishTask.cancel()
-    println("consumer cancelled...")
 
     connection.resources.scope.coroutineContext.job.join()
 }

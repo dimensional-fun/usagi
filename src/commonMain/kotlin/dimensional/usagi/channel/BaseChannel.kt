@@ -45,6 +45,10 @@ public abstract class BaseChannel(
     /** Whether this channel is performing an RPC call */
     internal val inRPC: Boolean get() = rpc != null
 
+    override fun toString(): String {
+        return "${this::class.simpleName ?: "BaseChannel"}(id=$id)"
+    }
+
     /**
      * Opens this channel.
      */

@@ -5,6 +5,7 @@ import dimensional.usagi.channel.command.Command
 import dimensional.usagi.channel.consumer.Consumer
 import dimensional.usagi.channel.consumer.Delivery
 import dimensional.usagi.channel.event.ChannelEvent
+import dimensional.usagi.channel.event.MessageReturnedEvent
 import dimensional.usagi.connection.Connection
 import dimensional.usagi.protocol.AMQP
 import dimensional.usagi.tools.into
@@ -44,28 +45,30 @@ public class Channel(
             /* consumer-specific commands */
             is AMQP.Basic.Deliver -> {
                 val consumer = consumerMap[command.method.consumerTag]
-                if (consumer != null) {
-                    val delivery = Delivery(
-                        consumer,
-                        Delivery.Envelope(
-                            command.method.deliveryTag,
-                            command.method.redelivered,
-                            command.method.exchange,
-                            command.method.routingKey,
-                        ),
-                        command.header?.properties.into(),
-                        command.body!!.asBytes()
-                    )
+                    ?: return true
 
-                    consumer.handle(delivery)
-                }
+                val delivery = Delivery(
+                    consumer,
+                    Delivery.Envelope(
+                        command.method.deliveryTag,
+                        command.method.redelivered,
+                        command.method.exchange,
+                        command.method.routingKey,
+                    ),
+                    command.header?.properties.into(),
+                    command.body!!.asBytes()
+                )
 
+                consumer.handle(delivery)
                 true
             }
 
             is AMQP.Basic.Cancel -> {
                 consumers[command.method.consumerTag]?.handle(command.method)
-                if (!command.method.nowait) send(AMQP.Basic.CancelOk(command.method.consumerTag))
+                if (!command.method.nowait) {
+                    send(AMQP.Basic.CancelOk(command.method.consumerTag))
+                }
+
                 true
             }
 
@@ -78,6 +81,21 @@ public class Channel(
 
             is AMQP.Basic.RecoverOk -> {
                 !inRPC // forward this to RPC
+            }
+
+            is AMQP.Basic.Return -> {
+                val body = command.body?.asBytes()
+                    ?: return true
+
+                val event = MessageReturnedEvent(
+                    this,
+                    command.method,
+                    body,
+                    command.header?.properties.into()
+                )
+
+                eventFlow.emit(event)
+                true
             }
 
             /* everything else */
@@ -100,7 +118,9 @@ public class Channel(
         }
 
         val ok = rpc(method)
-        require(ok.method is AMQP.Basic.ConsumeOk) { "Expected `basic.consume-ok`, not ${ok.method.methodName()}" }
+        require(ok.method is AMQP.Basic.ConsumeOk) {
+            "Expected `basic.consume-ok`, not ${ok.method.methodName()}"
+        }
 
         return createConsumer(ok.method.consumerTag)
     }
