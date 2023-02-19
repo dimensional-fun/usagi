@@ -97,14 +97,12 @@ tasks {
         outputDirectory by file("src/commonGenerated")
     }
 
-    publishing {
+    val username = System.getenv("REPO_ALIAS")
+    val password = System.getenv("REPO_TOKEN")
+
+    if (username != null && password != null) publishing {
         repositories {
-            dimensionalFun(
-                versionRef.repository,
-                System.getenv("REPO_ALIAS"),
-                System.getenv("REPO_TOKEN"),
-                true
-            )
+            dimensionalFun(versionRef.repository, username, password, true)
         }
 
         publications.filterIsInstance<MavenPublication>().forEach { publication ->
