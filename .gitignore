@@ -5,5 +5,4 @@ out/
 bin/
 build/
 
-*.jar
 *.env
