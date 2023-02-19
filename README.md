@@ -11,20 +11,18 @@ A kotlin multi-platform AMQP 0.9.1 client.
 
 **We are looking for contributors! If you are looking for a kotlin multiplatform AMQP client please consider opening PRs and Issues, it is very appreciated.**
 
-[**Discord Server**](https://discord.gg/8R4d8RydT4)
+- [**Discord Server**](https://discord.gg/8R4d8RydT4)
+- [**Documentation**](https://dimensional-fun.github.io/usagi)
 
 ## Installation
 
-- Java 11
-- Kotlin 1.8.10
-
-current version: *coming soon*
+Requires **Java 11** and **Kotlin 1.8.10**
 
 #### 🐘 Gradle
 
 ```kotlin
 repositories {
-    maven("https://maven.dimensional.fun/releases")
+    maven("https://maven.dimensional.fun/releases") // or /snapshots
 }
 
 dependencies {
