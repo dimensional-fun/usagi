@@ -7,7 +7,7 @@ plugins {
     `maven-publish`
 
     kotlin("multiplatform")
-    kotlin("plugin.serialization") version "1.8.0"
+    kotlin("plugin.serialization") version "1.8.10"
 }
 
 val versionRef = Version(0, 0, 4, release = ReleaseType.Snapshot)
@@ -51,16 +51,17 @@ kotlin {
             kotlin.srcDir("src/commonGenerated")
 
             dependencies {
+                /* Kotlin-specific things */
                 implementation(kotlin("stdlib"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.4.1")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
 
-                /* Coroutine Task Scheduling */
+                // Coroutine Task Scheduling
                 implementation("fun.dimensional:kyuso:1.0")
 
-                /* Idiomatic Logging for Kotlin */
-                implementation("io.github.microutils:kotlin-logging:2.1.23")
+                // Idiomatic Logging for Kotlin
+                implementation("io.github.microutils:kotlin-logging:3.0.5")
 
                 /* TCP Sockets */
                 implementation("io.ktor:ktor-network:2.2.3")

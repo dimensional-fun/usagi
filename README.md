@@ -15,6 +15,9 @@ A kotlin multi-platform AMQP 0.9.1 client.
 
 ## Installation
 
+- Java 11
+- Kotlin 1.8.10
+
 current version: *coming soon*
 
 #### 🐘 Gradle
