@@ -63,12 +63,15 @@ kotlin {
                 // Idiomatic Logging for Kotlin
                 implementation("io.github.microutils:kotlin-logging:3.0.5")
 
-                /* TCP Sockets */
-                implementation("io.ktor:ktor-network:2.2.3")
-                implementation("io.ktor:ktor-network-tls:2.2.3")
+                /* Ktor */
+                val ktor = "2.2.3"
 
-                /* `Url` class */
-                implementation("io.ktor:ktor-http:2.2.3")
+                // TCP Sockets
+                implementation("io.ktor:ktor-network:$ktor")
+                implementation("io.ktor:ktor-network-tls:$ktor")
+
+                // `Url` class
+                implementation("io.ktor:ktor-http:$ktor")
             }
         }
 

@@ -21,6 +21,6 @@ dependencies {
 
     /* used for code-generation */
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
-    implementation("com.squareup.okhttp3:okhttp:4.9.3")
+    implementation("com.squareup.okhttp3:okhttp:4.10.0")
     implementation("com.squareup:kotlinpoet:1.12.0")
 }
