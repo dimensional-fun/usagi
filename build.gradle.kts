@@ -6,6 +6,8 @@ import lol.dimensional.gradle.dsl.by
 plugins {
     `maven-publish`
 
+    id("org.jetbrains.dokka") version "1.7.20"
+
     kotlin("multiplatform")
     kotlin("plugin.serialization") version "1.8.10"
 }
