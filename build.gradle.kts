@@ -1,18 +1,18 @@
 import codegen.GenerateAMQPClasses
+import lol.dimensional.gradle.dsl.PreRelease
+import lol.dimensional.gradle.dsl.PreReleaseType
 import lol.dimensional.gradle.dsl.Version
-import lol.dimensional.gradle.dsl.ReleaseType
-import lol.dimensional.gradle.dsl.by
 
 plugins {
     `maven-publish`
 
-    id("org.jetbrains.dokka") version "1.7.20"
+    id("org.jetbrains.dokka") version "1.8.10"
 
     kotlin("multiplatform")
-    kotlin("plugin.serialization") version "1.8.10"
+    kotlin("plugin.serialization") version "1.8.20"
 }
 
-val versionRef = Version(0, 0, 4, release = ReleaseType.Snapshot)
+val versionRef = Version(1, 0, 0, PreRelease(PreReleaseType.ReleaseCandidate, "1"))
 version = "$versionRef"
 group = "fun.dimensional"
 
@@ -56,17 +56,16 @@ kotlin {
                 /* Kotlin-specific things */
                 implementation(kotlin("stdlib"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.4.1")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
 
                 // Coroutine Task Scheduling
-                implementation("fun.dimensional:kyuso:1.0")
+                implementation("fun.dimensional:kyuso:1.1.0")
 
                 // Idiomatic Logging for Kotlin
                 implementation("io.github.microutils:kotlin-logging:3.0.5")
 
                 /* Ktor */
-                val ktor = "2.2.3"
+                val ktor = "2.3.0"
 
                 // TCP Sockets
                 implementation("io.ktor:ktor-network:$ktor")
