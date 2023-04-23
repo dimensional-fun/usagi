@@ -1,0 +1,24 @@
+name: Docs
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+      - name: Build AMQP Classes
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: --stacktrace --info generateAmqpClasses
+      - name: Build Project
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: --stacktrace --info build
